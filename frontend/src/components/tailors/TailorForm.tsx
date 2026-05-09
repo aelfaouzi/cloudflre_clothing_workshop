@@ -15,7 +15,7 @@ import {
 import type { Tailor } from '@/types'
 
 const schema = z.object({
-  name: z.string().min(1, 'Required'),
+  name: z.string().min(1),
   phone: z.string().optional(),
   payRatePerPiece: z.coerce.number().min(0).optional(),
   isActive: z.boolean().optional(),
@@ -31,7 +31,13 @@ interface Props {
   isEdit?: boolean
 }
 
-export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoading, isEdit }: Props) {
+export default function TailorForm({
+  defaultValues,
+  onSubmit,
+  onCancel,
+  isLoading,
+  isEdit,
+}: Props) {
   const { t } = useTranslation('common')
 
   const {
@@ -50,40 +56,59 @@ export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoadin
     },
   })
 
-  const isActive = watch('isActive')
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2 space-y-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Name — full width */}
+        <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="name">{t('tailors.name')} *</Label>
-          <Input id="name" {...register('name')} placeholder={t('tailors.namePlaceholder')} />
-          {errors.name && <p className="text-xs text-destructive">{t('validation.required')}</p>}
+          <Input
+            id="name"
+            className="min-h-[44px]"
+            placeholder={t('tailors.namePlaceholder')}
+            {...register('name')}
+          />
+          {errors.name && (
+            <p className="text-xs text-destructive">{t('validation.required')}</p>
+          )}
         </div>
 
+        {/* Phone */}
         <div className="space-y-2">
           <Label htmlFor="phone">{t('tailors.phone')}</Label>
-          <Input id="phone" {...register('phone')} placeholder={t('tailors.phonePlaceholder')} />
+          <Input
+            id="phone"
+            type="tel"
+            inputMode="tel"
+            className="min-h-[44px]"
+            placeholder={t('tailors.phonePlaceholder')}
+            {...register('phone')}
+          />
         </div>
 
+        {/* Pay rate */}
         <div className="space-y-2">
           <Label htmlFor="payRatePerPiece">{t('tailors.payRatePerPiece')}</Label>
           <Input
             id="payRatePerPiece"
             type="number"
+            inputMode="decimal"
             step="0.01"
+            min={0}
+            className="min-h-[44px]"
             {...register('payRatePerPiece')}
           />
         </div>
 
+        {/* Status — only on edit */}
         {isEdit && (
           <div className="space-y-2">
             <Label>{t('common.status')}</Label>
             <Select
-              value={isActive ? 'active' : 'inactive'}
+              value={watch('isActive') ? 'active' : 'inactive'}
               onValueChange={(v) => setValue('isActive', v === 'active')}
             >
-              <SelectTrigger>
+              <SelectTrigger className="min-h-[44px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -95,12 +120,22 @@ export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoadin
         )}
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      {/* Actions */}
+      <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-[44px]"
+          onClick={onCancel}
+        >
           {t('common.cancel')}
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? t('common.saving') : isEdit ? t('common.update') : t('tailors.addTailor')}
+        <Button type="submit" className="min-h-[44px]" disabled={isLoading}>
+          {isLoading
+            ? t('common.saving')
+            : isEdit
+              ? t('tailors.editTailor')
+              : t('tailors.addTailor')}
         </Button>
       </div>
     </form>
