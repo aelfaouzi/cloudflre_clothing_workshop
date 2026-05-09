@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,6 +32,8 @@ interface Props {
 }
 
 export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoading, isEdit }: Props) {
+  const { t } = useTranslation('common')
+
   const {
     register,
     handleSubmit,
@@ -53,18 +56,18 @@ export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoadin
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="name">Name *</Label>
-          <Input id="name" {...register('name')} placeholder="Tailor name" />
-          {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+          <Label htmlFor="name">{t('tailors.name')} *</Label>
+          <Input id="name" {...register('name')} placeholder={t('tailors.namePlaceholder')} />
+          {errors.name && <p className="text-xs text-destructive">{t('validation.required')}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone</Label>
-          <Input id="phone" {...register('phone')} placeholder="+1 555 0000" />
+          <Label htmlFor="phone">{t('tailors.phone')}</Label>
+          <Input id="phone" {...register('phone')} placeholder={t('tailors.phonePlaceholder')} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="payRatePerPiece">Pay Rate (per piece)</Label>
+          <Label htmlFor="payRatePerPiece">{t('tailors.payRatePerPiece')}</Label>
           <Input
             id="payRatePerPiece"
             type="number"
@@ -75,7 +78,7 @@ export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoadin
 
         {isEdit && (
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t('common.status')}</Label>
             <Select
               value={isActive ? 'active' : 'inactive'}
               onValueChange={(v) => setValue('isActive', v === 'active')}
@@ -84,8 +87,8 @@ export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoadin
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="active">{t('common.active')}</SelectItem>
+                <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -94,10 +97,10 @@ export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoadin
 
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : isEdit ? 'Update Tailor' : 'Add Tailor'}
+          {isLoading ? t('common.saving') : isEdit ? t('common.update') : t('tailors.addTailor')}
         </Button>
       </div>
     </form>

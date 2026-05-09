@@ -1,53 +1,55 @@
 import { AlertTriangle, Briefcase, Clock, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn, STATUS_COLORS, STATUS_LABELS, STATUS_DOT_COLORS, formatDate, isDelayed } from '@/lib/utils'
+import { cn, STATUS_COLORS, STATUS_DOT_COLORS, getStatusKey, formatDate, isDelayed } from '@/lib/utils'
 import { useDashboard } from '@/hooks/useDashboard'
 import type { JobStatus } from '@/types'
 
 const ACTIVE_STATUSES: JobStatus[] = ['DRAFT', 'CUTTING', 'SEWING', 'READY']
 
 export default function Dashboard() {
+  const { t } = useTranslation('common')
   const { data, isLoading, error } = useDashboard()
 
   if (error) {
     return (
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-sm text-destructive">Failed to load dashboard data</p>
+        <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
+        <p className="text-sm text-destructive">{t('alerts.failedLoad')}</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <h1 className="text-2xl font-bold">{t('dashboard.title')}</h1>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
-          title="Active Jobs"
+          title={t('dashboard.activeJobs')}
           value={data?.summary.totalActiveJobs ?? 0}
           icon={<Briefcase className="h-5 w-5 text-primary" />}
           isLoading={isLoading}
         />
         <StatCard
-          title="Delayed Jobs"
+          title={t('dashboard.delayedJobs')}
           value={data?.summary.delayedJobs ?? 0}
           icon={<Clock className="h-5 w-5 text-red-500" />}
           isLoading={isLoading}
           highlight={!!data && data.summary.delayedJobs > 0}
         />
         <StatCard
-          title="Low Stock Fabrics"
+          title={t('dashboard.lowStockAlerts')}
           value={data?.lowStockFabrics.length ?? 0}
           icon={<AlertTriangle className="h-5 w-5 text-amber-500" />}
           isLoading={isLoading}
           highlight={!!data && data.lowStockFabrics.length > 0}
         />
         <StatCard
-          title="Active Tailors"
+          title={t('dashboard.activeTailors')}
           value={data?.tailorWorkload.filter((t) => t.isActive).length ?? 0}
           icon={<Users className="h-5 w-5 text-blue-500" />}
           isLoading={isLoading}
@@ -58,7 +60,7 @@ export default function Dashboard() {
         {/* Jobs by status */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Jobs by Stage</CardTitle>
+            <CardTitle className="text-base">{t('dashboard.jobsByStage')}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -77,7 +79,7 @@ export default function Dashboard() {
                     <div key={status} className="flex items-center gap-3">
                       <div className="flex items-center gap-2 w-24">
                         <div className={cn('h-2.5 w-2.5 rounded-full', STATUS_DOT_COLORS[status])} />
-                        <span className="text-sm text-muted-foreground">{STATUS_LABELS[status]}</span>
+                        <span className="text-sm text-muted-foreground">{t(getStatusKey(status))}</span>
                       </div>
                       <div className="flex-1 overflow-hidden rounded-full bg-muted h-2">
                         <div
@@ -102,7 +104,7 @@ export default function Dashboard() {
         {/* Tailor workload */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Tailor Workload</CardTitle>
+            <CardTitle className="text-base">{t('dashboard.tailorWorkload')}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -114,14 +116,16 @@ export default function Dashboard() {
                 {(data?.tailorWorkload ?? [])
                   .filter((t) => t.isActive)
                   .sort((a, b) => b.assignedJobsCount - a.assignedJobsCount)
-                  .map((t) => (
-                    <div key={t.tailorId} className="flex items-center justify-between rounded-md border px-3 py-2">
-                      <span className="text-sm font-medium">{t.name}</span>
-                      <Badge variant="secondary">{t.assignedJobsCount} jobs</Badge>
+                  .map((tailor) => (
+                    <div key={tailor.tailorId} className="flex items-center justify-between rounded-md border px-3 py-2">
+                      <span className="text-sm font-medium">{tailor.name}</span>
+                      <Badge variant="secondary">
+                        {tailor.assignedJobsCount} {t('common.jobs')}
+                      </Badge>
                     </div>
                   ))}
                 {data?.tailorWorkload.filter((t) => t.isActive).length === 0 && (
-                  <p className="text-sm text-muted-foreground">No active tailors</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard.noActiveTailors')}</p>
                 )}
               </div>
             )}
@@ -136,7 +140,7 @@ export default function Dashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <AlertTriangle className="h-4 w-4 text-red-500" />
-                Low Stock Alerts
+                {t('dashboard.lowStockAlerts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -152,7 +156,9 @@ export default function Dashboard() {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-red-600">{f.availableQty.toFixed(1)}m</p>
-                        <p className="text-xs text-muted-foreground">threshold: {f.lowStockThreshold}m</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t('dashboard.threshold')}: {f.lowStockThreshold}m
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -165,7 +171,7 @@ export default function Dashboard() {
         {/* Recent jobs */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Recent Jobs</CardTitle>
+            <CardTitle className="text-base">{t('dashboard.recentJobs')}</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -178,11 +184,13 @@ export default function Dashboard() {
                     <div key={job.id} className={cn('flex items-center justify-between rounded-md border px-3 py-2', delayed && 'border-red-200 bg-red-50/30')}>
                       <div>
                         <p className="text-xs font-mono text-muted-foreground">{job.jobNumber}</p>
-                        <p className="text-sm font-medium">{job.piecesExpected} pieces</p>
+                        <p className="text-sm font-medium">
+                          {job.piecesExpected} {t('common.pieces')}
+                        </p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
                         <Badge className={cn('border text-xs', STATUS_COLORS[job.status as JobStatus])}>
-                          {STATUS_LABELS[job.status as JobStatus]}
+                          {t(getStatusKey(job.status as JobStatus))}
                         </Badge>
                         {job.dueDate && (
                           <span className={cn('text-xs', delayed ? 'text-red-600 font-medium' : 'text-muted-foreground')}>
@@ -194,7 +202,7 @@ export default function Dashboard() {
                   )
                 })}
                 {data?.recentJobs.length === 0 && (
-                  <p className="text-sm text-muted-foreground">No jobs yet</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard.noRecentJobs')}</p>
                 )}
               </div>
             )}

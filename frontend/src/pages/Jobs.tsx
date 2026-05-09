@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, LayoutGrid, List, Trash2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -24,8 +25,9 @@ import { useJobs, useCreateJob, useDeleteJob, useTransitionJob } from '@/hooks/u
 import {
   cn,
   STATUS_COLORS,
-  STATUS_LABELS,
   PRIORITY_COLORS,
+  getStatusKey,
+  getPriorityKey,
   formatDate,
   isDelayed,
 } from '@/lib/utils'
@@ -34,6 +36,7 @@ import type { JobOrder, JobStatus } from '@/types'
 type ViewMode = 'kanban' | 'list'
 
 export default function Jobs() {
+  const { t } = useTranslation('common')
   const [view, setView] = useState<ViewMode>('kanban')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [deletingJobId, setDeletingJobId] = useState<string | null>(null)
@@ -63,8 +66,10 @@ export default function Jobs() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Jobs</h1>
-          <p className="text-sm text-muted-foreground">{jobs.length} total jobs</p>
+          <h1 className="text-2xl font-bold">{t('jobs.title')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {jobs.length} {t('jobs.totalJobs')}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-md border">
@@ -89,7 +94,7 @@ export default function Jobs() {
           </div>
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="h-4 w-4" />
-            New Job
+            {t('jobs.newJob')}
           </Button>
         </div>
       </div>
@@ -110,8 +115,8 @@ export default function Jobs() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Create New Job</DialogTitle>
-            <DialogDescription>Fill in the job details to create a new production order.</DialogDescription>
+            <DialogTitle>{t('jobs.createJob')}</DialogTitle>
+            <DialogDescription>{t('jobs.fillDetails')}</DialogDescription>
           </DialogHeader>
           <JobForm
             onSubmit={handleCreate}
@@ -128,21 +133,19 @@ export default function Jobs() {
       <Dialog open={!!deletingJobId} onOpenChange={() => setDeletingJobId(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Job</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. Only DRAFT or CANCELED jobs can be deleted.
-            </DialogDescription>
+            <DialogTitle>{t('jobs.deleteJob')}</DialogTitle>
+            <DialogDescription>{t('jobs.deleteConfirm')}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setDeletingJobId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? t('common.deleting') : t('common.delete')}
             </Button>
           </div>
         </DialogContent>
@@ -162,6 +165,8 @@ function JobsListView({
   onDelete: (id: string) => void
   onCancel: (job: JobOrder) => void
 }) {
+  const { t } = useTranslation('common')
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -177,12 +182,12 @@ function JobsListView({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Job #</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Pieces</TableHead>
-            <TableHead>Tailor</TableHead>
-            <TableHead>Due Date</TableHead>
+            <TableHead>{t('jobs.jobNumber')}</TableHead>
+            <TableHead>{t('common.status')}</TableHead>
+            <TableHead>{t('jobs.priority')}</TableHead>
+            <TableHead>{t('jobs.piecesExpected')}</TableHead>
+            <TableHead>{t('tailors.name')}</TableHead>
+            <TableHead>{t('jobs.dueDate')}</TableHead>
             <TableHead className="w-[80px]" />
           </TableRow>
         </TableHeader>
@@ -190,7 +195,7 @@ function JobsListView({
           {jobs.length === 0 && (
             <TableRow>
               <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                No jobs yet. Create your first job.
+                {t('jobs.noJobs')}
               </TableCell>
             </TableRow>
           )}
@@ -203,13 +208,13 @@ function JobsListView({
                 <TableCell className="font-mono text-xs">{job.jobNumber}</TableCell>
                 <TableCell>
                   <Badge className={cn('border text-xs', STATUS_COLORS[job.status as JobStatus])}>
-                    {STATUS_LABELS[job.status as JobStatus]}
+                    {t(getStatusKey(job.status as JobStatus))}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   {job.priority && (
                     <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', PRIORITY_COLORS[job.priority])}>
-                      {job.priority}
+                      {t(getPriorityKey(job.priority))}
                     </span>
                   )}
                 </TableCell>
@@ -230,7 +235,7 @@ function JobsListView({
                     {canCancel && (
                       <button
                         className="rounded p-1 text-muted-foreground hover:bg-amber-100 hover:text-amber-700"
-                        title="Cancel job"
+                        title={t('jobs.cancelJob')}
                         onClick={() => onCancel(job)}
                       >
                         <X className="h-3.5 w-3.5" />
@@ -239,7 +244,7 @@ function JobsListView({
                     {canDelete && (
                       <button
                         className="rounded p-1 text-muted-foreground hover:bg-red-100 hover:text-red-700"
-                        title="Delete job"
+                        title={t('jobs.deleteJob')}
                         onClick={() => onDelete(job.id)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />

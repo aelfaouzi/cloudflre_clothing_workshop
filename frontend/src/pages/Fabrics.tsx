@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, AlertTriangle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import type { Fabric } from '@/types'
 
 export default function Fabrics() {
+  const { t } = useTranslation('common')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingFabric, setEditingFabric] = useState<Fabric | null>(null)
   const [deletingFabricId, setDeletingFabricId] = useState<string | null>(null)
@@ -54,12 +55,14 @@ export default function Fabrics() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Fabrics</h1>
-          <p className="text-sm text-muted-foreground">{fabrics.length} fabric(s) in inventory</p>
+          <h1 className="text-2xl font-bold">{t('fabrics.title')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {fabrics.length} {t('fabrics.inInventory')}
+          </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4" />
-          Add Fabric
+          {t('fabrics.addFabric')}
         </Button>
       </div>
 
@@ -72,13 +75,13 @@ export default function Fabrics() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Color</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead className="text-right">Available (m)</TableHead>
-                <TableHead className="text-right">Reserved (m)</TableHead>
-                <TableHead className="text-right">Current (m)</TableHead>
+                <TableHead>{t('fabrics.fabricCode')}</TableHead>
+                <TableHead>{t('fabrics.type')}</TableHead>
+                <TableHead>{t('fabrics.color')}</TableHead>
+                <TableHead>{t('fabrics.supplier')}</TableHead>
+                <TableHead className="text-right">{t('fabrics.availableQty')}</TableHead>
+                <TableHead className="text-right">{t('fabrics.reservedQty')}</TableHead>
+                <TableHead className="text-right">{t('fabrics.currentQty')}</TableHead>
                 <TableHead className="w-[80px]" />
               </TableRow>
             </TableHeader>
@@ -86,7 +89,7 @@ export default function Fabrics() {
               {fabrics.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-                    No fabrics yet. Add your first fabric.
+                    {t('fabrics.noFabrics')}
                   </TableCell>
                 </TableRow>
               )}
@@ -139,8 +142,8 @@ export default function Fabrics() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Add Fabric</DialogTitle>
-            <DialogDescription>Add a new fabric to your inventory.</DialogDescription>
+            <DialogTitle>{t('fabrics.addFabric')}</DialogTitle>
+            <DialogDescription>{t('fabrics.addDescription')}</DialogDescription>
           </DialogHeader>
           <FabricForm
             onSubmit={handleCreate}
@@ -157,7 +160,7 @@ export default function Fabrics() {
       <Dialog open={!!editingFabric} onOpenChange={() => setEditingFabric(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit Fabric</DialogTitle>
+            <DialogTitle>{t('fabrics.editFabric')}</DialogTitle>
           </DialogHeader>
           {editingFabric && (
             <>
@@ -180,21 +183,19 @@ export default function Fabrics() {
       <Dialog open={!!deletingFabricId} onOpenChange={() => setDeletingFabricId(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Fabric</DialogTitle>
-            <DialogDescription>
-              This will permanently delete this fabric. Jobs linked to it will be affected.
-            </DialogDescription>
+            <DialogTitle>{t('fabrics.deleteFabric')}</DialogTitle>
+            <DialogDescription>{t('fabrics.deleteConfirm')}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setDeletingFabricId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? t('common.deleting') : t('common.delete')}
             </Button>
           </div>
         </DialogContent>
