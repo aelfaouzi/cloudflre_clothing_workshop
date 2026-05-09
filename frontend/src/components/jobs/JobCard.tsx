@@ -1,6 +1,7 @@
 import { AlertTriangle, Clock, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
-import { cn, STATUS_COLORS, STATUS_LABELS, PRIORITY_COLORS, formatDate, isDelayed } from '@/lib/utils'
+import { cn, STATUS_COLORS, PRIORITY_COLORS, getStatusKey, getPriorityKey, formatDate, isDelayed } from '@/lib/utils'
 import type { JobOrder } from '@/types'
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function JobCard({ job, onClick }: Props) {
+  const { t } = useTranslation('common')
   const delayed = isDelayed(job.dueDate, job.status)
 
   return (
@@ -31,20 +33,20 @@ export default function JobCard({ job, onClick }: Props) {
                 PRIORITY_COLORS[job.priority],
               )}
             >
-              {job.priority}
+              {t(getPriorityKey(job.priority))}
             </span>
           )}
           <Badge className={cn('border text-xs', STATUS_COLORS[job.status])}>
-            {STATUS_LABELS[job.status]}
+            {t(getStatusKey(job.status))}
           </Badge>
         </div>
       </div>
 
       <div className="space-y-1">
         <p className="text-sm font-medium leading-tight">
-          {job.piecesExpected} pcs
+          {job.piecesExpected} {t('common.pieces')}
           {job.piecesCompleted > 0 && (
-            <span className="ml-1 text-muted-foreground">/ {job.piecesCompleted} done</span>
+            <span className="ml-1 text-muted-foreground">/ {job.piecesCompleted} {t('common.done')}</span>
           )}
         </p>
 

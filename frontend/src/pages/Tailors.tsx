@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils'
 import type { Tailor } from '@/types'
 
 export default function Tailors() {
+  const { t } = useTranslation('common')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingTailor, setEditingTailor] = useState<Tailor | null>(null)
   const [deletingTailorId, setDeletingTailorId] = useState<string | null>(null)
@@ -56,14 +58,14 @@ export default function Tailors() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Tailors</h1>
+          <h1 className="text-2xl font-bold">{t('tailors.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            {tailors.length} total · {activeTailors} active
+            {t('tailors.totalActive', { active: activeTailors })}
           </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4" />
-          Add Tailor
+          {t('tailors.addTailor')}
         </Button>
       </div>
 
@@ -76,11 +78,11 @@ export default function Tailors() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Pay Rate</TableHead>
-                <TableHead>Active Jobs</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t('tailors.name')}</TableHead>
+                <TableHead>{t('tailors.phone')}</TableHead>
+                <TableHead>{t('tailors.payRatePerPiece')}</TableHead>
+                <TableHead>{t('tailors.activeJobs')}</TableHead>
+                <TableHead>{t('common.status')}</TableHead>
                 <TableHead className="w-[80px]" />
               </TableRow>
             </TableHeader>
@@ -88,7 +90,7 @@ export default function Tailors() {
               {tailors.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No tailors yet. Add your first tailor.
+                    {t('tailors.noTailors')}
                   </TableCell>
                 </TableRow>
               )}
@@ -104,7 +106,9 @@ export default function Tailors() {
                       : <span className="text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{tailor.assignedJobsCount} jobs</Badge>
+                    <Badge variant="secondary">
+                      {tailor.assignedJobsCount} {t('common.jobs')}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -115,7 +119,7 @@ export default function Tailors() {
                           : 'bg-slate-100 text-slate-500',
                       )}
                     >
-                      {tailor.isActive ? 'Active' : 'Inactive'}
+                      {tailor.isActive ? t('common.active') : t('common.inactive')}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -145,8 +149,8 @@ export default function Tailors() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Tailor</DialogTitle>
-            <DialogDescription>Register a new tailor in the system.</DialogDescription>
+            <DialogTitle>{t('tailors.addTailor')}</DialogTitle>
+            <DialogDescription>{t('tailors.registerDescription')}</DialogDescription>
           </DialogHeader>
           <TailorForm
             onSubmit={handleCreate}
@@ -163,7 +167,7 @@ export default function Tailors() {
       <Dialog open={!!editingTailor} onOpenChange={() => setEditingTailor(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Tailor</DialogTitle>
+            <DialogTitle>{t('tailors.editTailor')}</DialogTitle>
           </DialogHeader>
           {editingTailor && (
             <>
@@ -186,21 +190,19 @@ export default function Tailors() {
       <Dialog open={!!deletingTailorId} onOpenChange={() => setDeletingTailorId(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Delete Tailor</DialogTitle>
-            <DialogDescription>
-              This will permanently delete this tailor. Their job history will be preserved.
-            </DialogDescription>
+            <DialogTitle>{t('tailors.deleteTailor')}</DialogTitle>
+            <DialogDescription>{t('tailors.deleteConfirm')}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setDeletingTailorId(null)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? t('common.deleting') : t('common.delete')}
             </Button>
           </div>
         </DialogContent>

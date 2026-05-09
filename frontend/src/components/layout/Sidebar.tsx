@@ -1,19 +1,23 @@
 import { NavLink } from 'react-router-dom'
 import { UserButton } from '@clerk/clerk-react'
 import { LayoutDashboard, Briefcase, Layers, Users, Settings, Scissors } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
-
-const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/jobs', label: 'Jobs', icon: Briefcase },
-  { to: '/fabrics', label: 'Fabrics', icon: Layers },
-  { to: '/tailors', label: 'Tailors', icon: Users },
-  { to: '/settings', label: 'Settings', icon: Settings },
-]
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 export default function Sidebar() {
+  const { t } = useTranslation('common')
+
+  const navItems = [
+    { to: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+    { to: '/jobs', label: t('nav.jobs'), icon: Briefcase },
+    { to: '/fabrics', label: t('nav.fabrics'), icon: Layers },
+    { to: '/tailors', label: t('nav.tailors'), icon: Users },
+    { to: '/settings', label: t('nav.settings'), icon: Settings },
+  ]
+
   return (
-    <aside className="flex h-screen w-60 flex-col border-r bg-card">
+    <aside className="flex h-screen w-60 flex-col border-e bg-card">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2.5 border-b px-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -46,11 +50,12 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* User */}
-      <div className="border-t p-4">
-        <div className="flex items-center gap-3">
+      {/* Language switcher + User */}
+      <div className="border-t p-3 space-y-1">
+        <LanguageSwitcher />
+        <div className="flex items-center gap-3 px-2 py-1.5">
           <UserButton afterSignOutUrl="/sign-in" />
-          <span className="text-sm text-muted-foreground">Account</span>
+          <span className="text-sm text-muted-foreground">{t('nav.account')}</span>
         </div>
       </div>
     </aside>

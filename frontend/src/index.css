@@ -31,6 +31,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', 'Noto Sans Arabic', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  :lang(ar) body,
+  [dir="rtl"] body {
+    font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
   }
 }

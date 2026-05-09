@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Plus, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,9 +38,10 @@ interface Props {
 }
 
 export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, isEdit }: Props) {
+  const { t } = useTranslation('common')
   const { data: fabrics = [] } = useFabrics()
   const { data: tailors = [] } = useTailors()
-  const activeTailors = tailors.filter((t) => t.isActive)
+  const activeTailors = tailors.filter((tailor) => tailor.isActive)
 
   const [fabricLinks, setFabricLinks] = useState<FabricLinkInput[]>(
     defaultValues?.fabricLinks?.map((l) => ({
@@ -87,18 +89,18 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Assign Tailor</Label>
+          <Label>{t('jobs.assignTailor')}</Label>
           <Select
             value={watch('tailorId') ?? ''}
             onValueChange={(v) => setValue('tailorId', v || undefined)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select tailor..." />
+              <SelectValue placeholder={t('jobs.selectTailor')} />
             </SelectTrigger>
             <SelectContent>
-              {activeTailors.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
+              {activeTailors.map((tailor) => (
+                <SelectItem key={tailor.id} value={tailor.id}>
+                  {tailor.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -106,7 +108,7 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
         </div>
 
         <div className="space-y-2">
-          <Label>Priority</Label>
+          <Label>{t('jobs.priority')}</Label>
           <Select
             value={watch('priority')}
             onValueChange={(v) => setValue('priority', v as FormValues['priority'])}
@@ -115,45 +117,45 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="LOW">Low</SelectItem>
-              <SelectItem value="NORMAL">Normal</SelectItem>
-              <SelectItem value="HIGH">High</SelectItem>
-              <SelectItem value="URGENT">Urgent</SelectItem>
+              <SelectItem value="LOW">{t('priority.low')}</SelectItem>
+              <SelectItem value="NORMAL">{t('priority.normal')}</SelectItem>
+              <SelectItem value="HIGH">{t('priority.high')}</SelectItem>
+              <SelectItem value="URGENT">{t('priority.urgent')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="piecesExpected">Pieces Expected *</Label>
+          <Label htmlFor="piecesExpected">{t('jobs.piecesExpectedLabel')}</Label>
           <Input id="piecesExpected" type="number" min={1} {...register('piecesExpected')} />
           {errors.piecesExpected && (
-            <p className="text-xs text-destructive">{errors.piecesExpected.message}</p>
+            <p className="text-xs text-destructive">{t('jobs.piecesExpectedMin')}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dueDate">Due Date</Label>
+          <Label htmlFor="dueDate">{t('jobs.dueDate')}</Label>
           <Input id="dueDate" type="date" {...register('dueDate')} />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register('notes')} placeholder="Any additional notes..." rows={2} />
+        <Label htmlFor="notes">{t('jobs.notes')}</Label>
+        <Textarea id="notes" {...register('notes')} placeholder={t('jobs.notesPlaceholder')} rows={2} />
       </div>
 
       {/* Fabric Links */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Fabric Assignments</Label>
+          <Label>{t('jobs.fabricAssignments')}</Label>
           <Button type="button" variant="outline" size="sm" onClick={addFabricLink}>
             <Plus className="h-3.5 w-3.5" />
-            Add Fabric
+            {t('jobs.addFabric')}
           </Button>
         </div>
 
         {fabricLinks.length === 0 && (
-          <p className="text-sm text-muted-foreground">No fabrics assigned yet.</p>
+          <p className="text-sm text-muted-foreground">{t('jobs.noFabricsAssigned')}</p>
         )}
 
         {fabricLinks.map((link, index) => (
@@ -164,12 +166,12 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
                 onValueChange={(v) => updateFabricLink(index, 'fabricId', v)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select fabric..." />
+                  <SelectValue placeholder={t('jobs.selectFabric')} />
                 </SelectTrigger>
                 <SelectContent>
                   {fabrics.map((f) => (
                     <SelectItem key={f.id} value={f.id}>
-                      {f.fabricCode} — {f.type} ({(f.currentQty - f.reservedQty).toFixed(1)}m available)
+                      {f.fabricCode} — {f.type} ({(f.currentQty - f.reservedQty).toFixed(1)}m {t('jobs.available')})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -180,7 +182,7 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
                 type="number"
                 step="0.1"
                 min={0}
-                placeholder="Meters"
+                placeholder={t('jobs.meters')}
                 value={link.metersReserved}
                 onChange={(e) =>
                   updateFabricLink(index, 'metersReserved', parseFloat(e.target.value) || 0)
@@ -202,10 +204,10 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
 
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : isEdit ? 'Update Job' : 'Create Job'}
+          {isLoading ? t('common.saving') : isEdit ? t('common.update') : t('common.create')}
         </Button>
       </div>
     </form>

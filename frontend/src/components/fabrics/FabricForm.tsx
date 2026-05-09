@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,6 +28,8 @@ interface Props {
 }
 
 export default function FabricForm({ defaultValues, onSubmit, onCancel, isLoading, isEdit }: Props) {
+  const { t } = useTranslation('common')
+
   const {
     register,
     handleSubmit,
@@ -48,30 +51,30 @@ export default function FabricForm({ defaultValues, onSubmit, onCancel, isLoadin
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="fabricCode">Fabric Code *</Label>
-          <Input id="fabricCode" {...register('fabricCode')} placeholder="FAB-001" />
-          {errors.fabricCode && <p className="text-xs text-destructive">{errors.fabricCode.message}</p>}
+          <Label htmlFor="fabricCode">{t('fabrics.fabricCode')} *</Label>
+          <Input id="fabricCode" {...register('fabricCode')} placeholder={t('fabrics.fabricCodePlaceholder')} />
+          {errors.fabricCode && <p className="text-xs text-destructive">{t('validation.required')}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="type">Type *</Label>
-          <Input id="type" {...register('type')} placeholder="Cotton, Polyester..." />
-          {errors.type && <p className="text-xs text-destructive">{errors.type.message}</p>}
+          <Label htmlFor="type">{t('fabrics.type')} *</Label>
+          <Input id="type" {...register('type')} placeholder={t('fabrics.typePlaceholder')} />
+          {errors.type && <p className="text-xs text-destructive">{t('validation.required')}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
-          <Input id="color" {...register('color')} placeholder="White, Blue..." />
+          <Label htmlFor="color">{t('fabrics.color')}</Label>
+          <Input id="color" {...register('color')} placeholder={t('fabrics.colorPlaceholder')} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="supplier">Supplier</Label>
-          <Input id="supplier" {...register('supplier')} placeholder="Supplier name" />
+          <Label htmlFor="supplier">{t('fabrics.supplier')}</Label>
+          <Input id="supplier" {...register('supplier')} placeholder={t('fabrics.supplierPlaceholder')} />
         </div>
 
         {!isEdit && (
           <div className="space-y-2">
-            <Label htmlFor="initialQty">Initial Quantity (m) *</Label>
+            <Label htmlFor="initialQty">{t('fabrics.initialQty')} *</Label>
             <Input
               id="initialQty"
               type="number"
@@ -79,13 +82,13 @@ export default function FabricForm({ defaultValues, onSubmit, onCancel, isLoadin
               {...register('initialQty')}
             />
             {errors.initialQty && (
-              <p className="text-xs text-destructive">{errors.initialQty.message}</p>
+              <p className="text-xs text-destructive">{t('validation.minValue', { min: 0 })}</p>
             )}
           </div>
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="costPerMeter">Cost per Meter</Label>
+          <Label htmlFor="costPerMeter">{t('fabrics.costPerMeter')}</Label>
           <Input
             id="costPerMeter"
             type="number"
@@ -95,7 +98,7 @@ export default function FabricForm({ defaultValues, onSubmit, onCancel, isLoadin
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="lowStockThreshold">Low Stock Alert (m)</Label>
+          <Label htmlFor="lowStockThreshold">{t('fabrics.lowStockThreshold')}</Label>
           <Input
             id="lowStockThreshold"
             type="number"
@@ -107,10 +110,10 @@ export default function FabricForm({ defaultValues, onSubmit, onCancel, isLoadin
 
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : isEdit ? 'Update Fabric' : 'Add Fabric'}
+          {isLoading ? t('common.saving') : isEdit ? t('common.update') : t('fabrics.addFabric')}
         </Button>
       </div>
     </form>

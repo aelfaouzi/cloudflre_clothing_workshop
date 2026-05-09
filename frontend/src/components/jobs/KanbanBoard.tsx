@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import { cn, STATUS_COLORS, STATUS_LABELS, STATUS_DOT_COLORS, NEXT_STATUS } from '@/lib/utils'
+import { cn, STATUS_COLORS, STATUS_DOT_COLORS, NEXT_STATUS, getStatusKey } from '@/lib/utils'
 import JobCard from './JobCard'
 import type { JobOrder, JobStatus, TransitionJobInput } from '@/types'
 import { useTransitionJob } from '@/hooks/useJobs'
@@ -23,6 +24,7 @@ interface TransitionModalState {
 }
 
 export default function KanbanBoard({ jobs, isLoading }: Props) {
+  const { t } = useTranslation('common')
   const [transitionModal, setTransitionModal] = useState<TransitionModalState | null>(null)
   const [piecesCompleted, setPiecesCompleted] = useState('')
   const transitionMutation = useTransitionJob()
@@ -78,7 +80,7 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
               <div className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
                 <div className="flex items-center gap-2">
                   <div className={cn('h-2 w-2 rounded-full', STATUS_DOT_COLORS[status])} />
-                  <span className="text-xs font-semibold">{STATUS_LABELS[status]}</span>
+                  <span className="text-xs font-semibold">{t(getStatusKey(status))}</span>
                 </div>
                 <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
                   {columnJobs.length}
@@ -89,7 +91,7 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
               <div className="flex flex-col gap-2">
                 {columnJobs.length === 0 && (
                   <div className="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
-                    Empty
+                    {t('common.empty')}
                   </div>
                 )}
                 {columnJobs.map((job) => (
@@ -109,43 +111,47 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
       <Dialog open={!!transitionModal} onOpenChange={() => setTransitionModal(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Advance Job to {transitionModal && STATUS_LABELS[transitionModal.targetStatus]}</DialogTitle>
+            <DialogTitle>
+              {transitionModal
+                ? t('jobs.advanceTo', { status: t(getStatusKey(transitionModal.targetStatus)) })
+                : ''}
+            </DialogTitle>
           </DialogHeader>
           {transitionModal && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Move <span className="font-medium">{transitionModal.job.jobNumber}</span> from{' '}
+                {transitionModal.job.jobNumber}{' '}
                 <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium', STATUS_COLORS[transitionModal.job.status])}>
-                  {STATUS_LABELS[transitionModal.job.status]}
+                  {t(getStatusKey(transitionModal.job.status))}
                 </span>{' '}
-                to{' '}
+                →{' '}
                 <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium', STATUS_COLORS[transitionModal.targetStatus])}>
-                  {STATUS_LABELS[transitionModal.targetStatus]}
+                  {t(getStatusKey(transitionModal.targetStatus))}
                 </span>
               </p>
 
               {transitionModal.targetStatus === 'READY' && (
                 <div className="space-y-2">
-                  <Label>Pieces Completed</Label>
+                  <Label>{t('jobs.piecesCompleted')}</Label>
                   <Input
                     type="number"
                     min={0}
                     value={piecesCompleted}
                     onChange={(e) => setPiecesCompleted(e.target.value)}
-                    placeholder={`Expected: ${transitionModal.job.piecesExpected}`}
+                    placeholder={`${t('jobs.piecesExpected')}: ${transitionModal.job.piecesExpected}`}
                   />
                 </div>
               )}
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setTransitionModal(null)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   onClick={handleConfirmTransition}
                   disabled={transitionMutation.isPending}
                 >
-                  {transitionMutation.isPending ? 'Processing...' : 'Confirm'}
+                  {transitionMutation.isPending ? t('common.processing') : t('jobs.confirmTransition')}
                 </Button>
               </div>
 

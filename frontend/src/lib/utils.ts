@@ -15,6 +15,14 @@ export const STATUS_LABELS: Record<JobStatus, string> = {
   CANCELED: 'Canceled',
 }
 
+export function getStatusKey(status: JobStatus): string {
+  return `status.${status.toLowerCase()}`
+}
+
+export function getPriorityKey(priority: Priority): string {
+  return `priority.${priority.toLowerCase()}`
+}
+
 export const STATUS_COLORS: Record<JobStatus, string> = {
   DRAFT: 'bg-slate-100 text-slate-700 border-slate-200',
   CUTTING: 'bg-orange-100 text-orange-700 border-orange-200',
@@ -51,7 +59,8 @@ export const NEXT_STATUS: Record<JobStatus, JobStatus | null> = {
 
 export function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—'
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
+  const locale = document.documentElement.lang || 'en'
+  return new Intl.DateTimeFormat(locale, { month: 'short', day: 'numeric', year: 'numeric' }).format(
     new Date(dateStr),
   )
 }
