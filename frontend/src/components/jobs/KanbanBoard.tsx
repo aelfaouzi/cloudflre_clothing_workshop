@@ -4,12 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { cn, STATUS_COLORS, STATUS_DOT_COLORS, NEXT_STATUS, getStatusKey } from '@/lib/utils'
 import JobCard from './JobCard'
 import type { JobOrder, JobStatus, TransitionJobInput } from '@/types'
 import { useTransitionJob } from '@/hooks/useJobs'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 const KANBAN_COLUMNS: JobStatus[] = ['DRAFT', 'CUTTING', 'SEWING', 'READY', 'DISPATCHED']
 
@@ -57,10 +57,11 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-5 gap-4">
+      /* Loading skeleton — horizontal scroll on mobile, grid on lg */
+      <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 lg:grid lg:grid-cols-5 lg:overflow-visible">
         {KANBAN_COLUMNS.map((s) => (
-          <div key={s} className="space-y-3">
-            <Skeleton className="h-8 w-full" />
+          <div key={s} className="w-[200px] shrink-0 space-y-3 lg:w-auto">
+            <Skeleton className="h-9 w-full" />
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </div>
@@ -71,45 +72,56 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-5 gap-3 overflow-x-auto pb-2">
-        {KANBAN_COLUMNS.map((status) => {
-          const columnJobs = jobsByStatus[status] ?? []
-          return (
-            <div key={status} className="flex flex-col gap-2 min-w-[180px]">
-              {/* Column header */}
-              <div className="flex items-center justify-between rounded-md border bg-muted/50 px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <div className={cn('h-2 w-2 rounded-full', STATUS_DOT_COLORS[status])} />
-                  <span className="text-xs font-semibold">{t(getStatusKey(status))}</span>
-                </div>
-                <Badge variant="secondary" className="text-xs px-1.5 py-0.5">
-                  {columnJobs.length}
-                </Badge>
-              </div>
-
-              {/* Cards */}
-              <div className="flex flex-col gap-2">
-                {columnJobs.length === 0 && (
-                  <div className="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
-                    {t('common.empty')}
+      {/*
+        Mobile / tablet: flex row with horizontal scroll (each col 200px min).
+        Desktop lg+: 5-column grid, no horizontal scroll.
+        Negative horizontal margin cancels page padding so the scroll
+        reaches the screen edges on mobile.
+      */}
+      <div className="-mx-4 px-4 overflow-x-auto scrollbar-none pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:overflow-visible lg:px-0">
+        <div className="flex gap-3 lg:grid lg:grid-cols-5">
+          {KANBAN_COLUMNS.map((status) => {
+            const columnJobs = jobsByStatus[status] ?? []
+            return (
+              <div
+                key={status}
+                className="flex w-[min(200px,75vw)] shrink-0 flex-col gap-2 lg:w-auto"
+              >
+                {/* Column header */}
+                <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <div className={cn('h-2 w-2 rounded-full', STATUS_DOT_COLORS[status])} />
+                    <span className="text-xs font-semibold">{t(getStatusKey(status))}</span>
                   </div>
-                )}
-                {columnJobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    onClick={NEXT_STATUS[job.status] ? () => handleCardClick(job) : undefined}
-                  />
-                ))}
+                  <Badge variant="secondary" className="px-1.5 py-0.5 text-xs">
+                    {columnJobs.length}
+                  </Badge>
+                </div>
+
+                {/* Cards */}
+                <div className="flex flex-col gap-2">
+                  {columnJobs.length === 0 && (
+                    <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+                      {t('common.empty')}
+                    </div>
+                  )}
+                  {columnJobs.map((job) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      onClick={NEXT_STATUS[job.status] ? () => handleCardClick(job) : undefined}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
 
       {/* Transition confirmation modal */}
       <Dialog open={!!transitionModal} onOpenChange={() => setTransitionModal(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-xl sm:w-full">
           <DialogHeader>
             <DialogTitle>
               {transitionModal
@@ -121,11 +133,21 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 {transitionModal.job.jobNumber}{' '}
-                <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium', STATUS_COLORS[transitionModal.job.status])}>
+                <span
+                  className={cn(
+                    'rounded px-1.5 py-0.5 text-xs font-medium',
+                    STATUS_COLORS[transitionModal.job.status],
+                  )}
+                >
                   {t(getStatusKey(transitionModal.job.status))}
                 </span>{' '}
                 →{' '}
-                <span className={cn('rounded px-1.5 py-0.5 text-xs font-medium', STATUS_COLORS[transitionModal.targetStatus])}>
+                <span
+                  className={cn(
+                    'rounded px-1.5 py-0.5 text-xs font-medium',
+                    STATUS_COLORS[transitionModal.targetStatus],
+                  )}
+                >
                   {t(getStatusKey(transitionModal.targetStatus))}
                 </span>
               </p>
@@ -135,7 +157,9 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
                   <Label>{t('jobs.piecesCompleted')}</Label>
                   <Input
                     type="number"
+                    inputMode="numeric"
                     min={0}
+                    className="min-h-[44px]"
                     value={piecesCompleted}
                     onChange={(e) => setPiecesCompleted(e.target.value)}
                     placeholder={`${t('jobs.piecesExpected')}: ${transitionModal.job.piecesExpected}`}
@@ -143,23 +167,30 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
                 </div>
               )}
 
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setTransitionModal(null)}>
-                  {t('common.cancel')}
-                </Button>
-                <Button
-                  onClick={handleConfirmTransition}
-                  disabled={transitionMutation.isPending}
-                >
-                  {transitionMutation.isPending ? t('common.processing') : t('jobs.confirmTransition')}
-                </Button>
-              </div>
-
               {transitionMutation.isError && (
-                <p className="text-sm text-destructive">
+                <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
                   {(transitionMutation.error as Error).message}
                 </p>
               )}
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  variant="outline"
+                  className="min-h-[44px]"
+                  onClick={() => setTransitionModal(null)}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  className="min-h-[44px]"
+                  onClick={handleConfirmTransition}
+                  disabled={transitionMutation.isPending}
+                >
+                  {transitionMutation.isPending
+                    ? t('common.processing')
+                    : t('jobs.confirmTransition')}
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

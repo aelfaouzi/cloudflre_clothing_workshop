@@ -1,7 +1,15 @@
 import { AlertTriangle, Clock, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
-import { cn, STATUS_COLORS, PRIORITY_COLORS, getStatusKey, getPriorityKey, formatDate, isDelayed } from '@/lib/utils'
+import {
+  cn,
+  STATUS_COLORS,
+  PRIORITY_COLORS,
+  getStatusKey,
+  getPriorityKey,
+  formatDate,
+  isDelayed,
+} from '@/lib/utils'
 import type { JobOrder } from '@/types'
 
 interface Props {
@@ -16,16 +24,22 @@ export default function JobCard({ job, onClick }: Props) {
   return (
     <div
       role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
       onClick={onClick}
+      onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
       className={cn(
-        'rounded-lg border bg-card p-3 shadow-sm transition-shadow',
-        onClick && 'cursor-pointer hover:shadow-md',
+        'rounded-lg border bg-card p-3 shadow-sm transition-all',
+        onClick &&
+          'cursor-pointer hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         delayed && 'border-red-200 bg-red-50/30',
       )}
     >
+      {/* Top row: job number + badges */}
       <div className="mb-2 flex items-start justify-between gap-2">
-        <span className="text-xs font-mono font-medium text-muted-foreground">{job.jobNumber}</span>
-        <div className="flex gap-1">
+        <span className="font-mono text-xs font-medium text-muted-foreground">
+          {job.jobNumber}
+        </span>
+        <div className="flex shrink-0 flex-wrap justify-end gap-1">
           {job.priority && job.priority !== 'NORMAL' && (
             <span
               className={cn(
@@ -42,37 +56,40 @@ export default function JobCard({ job, onClick }: Props) {
         </div>
       </div>
 
-      <div className="space-y-1">
-        <p className="text-sm font-medium leading-tight">
-          {job.piecesExpected} {t('common.pieces')}
-          {job.piecesCompleted > 0 && (
-            <span className="ml-1 text-muted-foreground">/ {job.piecesCompleted} {t('common.done')}</span>
+      {/* Pieces */}
+      <p className="text-sm font-medium leading-tight">
+        {job.piecesExpected} {t('common.pieces')}
+        {job.piecesCompleted > 0 && (
+          <span className="ms-1 text-muted-foreground">
+            / {job.piecesCompleted} {t('common.done')}
+          </span>
+        )}
+      </p>
+
+      {/* Tailor */}
+      {job.tailor && (
+        <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <User className="h-3 w-3 shrink-0" />
+          <span className="truncate">{job.tailor.name}</span>
+        </div>
+      )}
+
+      {/* Due date */}
+      {job.dueDate && (
+        <div
+          className={cn(
+            'mt-1 flex items-center gap-1 text-xs',
+            delayed ? 'font-medium text-red-600' : 'text-muted-foreground',
           )}
-        </p>
-
-        {job.tailor && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <User className="h-3 w-3" />
-            <span>{job.tailor.name}</span>
-          </div>
-        )}
-
-        {job.dueDate && (
-          <div
-            className={cn(
-              'flex items-center gap-1 text-xs',
-              delayed ? 'text-red-600 font-medium' : 'text-muted-foreground',
-            )}
-          >
-            {delayed ? (
-              <AlertTriangle className="h-3 w-3" />
-            ) : (
-              <Clock className="h-3 w-3" />
-            )}
-            <span>{formatDate(job.dueDate)}</span>
-          </div>
-        )}
-      </div>
+        >
+          {delayed ? (
+            <AlertTriangle className="h-3 w-3 shrink-0" />
+          ) : (
+            <Clock className="h-3 w-3 shrink-0" />
+          )}
+          <span>{formatDate(job.dueDate)}</span>
+        </div>
+      )}
     </div>
   )
 }

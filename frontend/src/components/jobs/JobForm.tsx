@@ -22,7 +22,7 @@ import type { JobOrder, FabricLinkInput } from '@/types'
 const schema = z.object({
   tailorId: z.string().optional(),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).default('NORMAL'),
-  piecesExpected: z.coerce.number().int().min(1, 'Must be at least 1'),
+  piecesExpected: z.coerce.number().int().min(1),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
 })
@@ -41,7 +41,7 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
   const { t } = useTranslation('common')
   const { data: fabrics = [] } = useFabrics()
   const { data: tailors = [] } = useTailors()
-  const activeTailors = tailors.filter((tailor) => tailor.isActive)
+  const activeTailors = tailors.filter((t) => t.isActive)
 
   const [fabricLinks, setFabricLinks] = useState<FabricLinkInput[]>(
     defaultValues?.fabricLinks?.map((l) => ({
@@ -71,30 +71,32 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
     onSubmit({ ...values, fabricLinks })
   }
 
-  const addFabricLink = () => {
+  const addFabricLink = () =>
     setFabricLinks((prev) => [...prev, { fabricId: '', metersReserved: 0 }])
-  }
 
-  const removeFabricLink = (index: number) => {
+  const removeFabricLink = (index: number) =>
     setFabricLinks((prev) => prev.filter((_, i) => i !== index))
-  }
 
-  const updateFabricLink = (index: number, field: keyof FabricLinkInput, value: string | number) => {
+  const updateFabricLink = (
+    index: number,
+    field: keyof FabricLinkInput,
+    value: string | number,
+  ) =>
     setFabricLinks((prev) =>
       prev.map((link, i) => (i === index ? { ...link, [field]: value } : link)),
     )
-  }
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
-      <div className="grid grid-cols-2 gap-4">
+      {/* Row 1: Tailor + Priority */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>{t('jobs.assignTailor')}</Label>
           <Select
             value={watch('tailorId') ?? ''}
             onValueChange={(v) => setValue('tailorId', v || undefined)}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-h-[44px]">
               <SelectValue placeholder={t('jobs.selectTailor')} />
             </SelectTrigger>
             <SelectContent>
@@ -113,7 +115,7 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
             value={watch('priority')}
             onValueChange={(v) => setValue('priority', v as FormValues['priority'])}
           >
-            <SelectTrigger>
+            <SelectTrigger className="min-h-[44px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -125,26 +127,45 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
           </Select>
         </div>
 
+        {/* Row 2: Pieces + Due Date */}
         <div className="space-y-2">
           <Label htmlFor="piecesExpected">{t('jobs.piecesExpectedLabel')}</Label>
-          <Input id="piecesExpected" type="number" min={1} {...register('piecesExpected')} />
+          <Input
+            id="piecesExpected"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            className="min-h-[44px]"
+            {...register('piecesExpected')}
+          />
           {errors.piecesExpected && (
-            <p className="text-xs text-destructive">{t('jobs.piecesExpectedMin')}</p>
+            <p className="text-xs text-destructive">{t('validation.atLeastOne')}</p>
           )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="dueDate">{t('jobs.dueDate')}</Label>
-          <Input id="dueDate" type="date" {...register('dueDate')} />
+          <Input
+            id="dueDate"
+            type="date"
+            className="min-h-[44px]"
+            {...register('dueDate')}
+          />
         </div>
       </div>
 
+      {/* Notes */}
       <div className="space-y-2">
         <Label htmlFor="notes">{t('jobs.notes')}</Label>
-        <Textarea id="notes" {...register('notes')} placeholder={t('jobs.notesPlaceholder')} rows={2} />
+        <Textarea
+          id="notes"
+          rows={2}
+          placeholder={t('jobs.notesPlaceholder')}
+          {...register('notes')}
+        />
       </div>
 
-      {/* Fabric Links */}
+      {/* Fabric links */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label>{t('jobs.fabricAssignments')}</Label>
@@ -158,56 +179,71 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
           <p className="text-sm text-muted-foreground">{t('jobs.noFabricsAssigned')}</p>
         )}
 
-        {fabricLinks.map((link, index) => (
-          <div key={index} className="flex items-end gap-2">
-            <div className="flex-1 space-y-1">
-              <Select
-                value={link.fabricId}
-                onValueChange={(v) => updateFabricLink(index, 'fabricId', v)}
+        <div className="space-y-2">
+          {fabricLinks.map((link, index) => (
+            <div key={index} className="flex items-end gap-2">
+              <div className="min-w-0 flex-1">
+                <Select
+                  value={link.fabricId}
+                  onValueChange={(v) => updateFabricLink(index, 'fabricId', v)}
+                >
+                  <SelectTrigger className="min-h-[44px]">
+                    <SelectValue placeholder={t('jobs.selectFabric')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fabrics.map((f) => (
+                      <SelectItem key={f.id} value={f.id}>
+                        {f.fabricCode} — {f.type} (
+                        {(f.currentQty - f.reservedQty).toFixed(1)}m {t('jobs.available')})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-24 shrink-0">
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  min={0}
+                  className="min-h-[44px]"
+                  placeholder={t('jobs.meters')}
+                  value={link.metersReserved}
+                  onChange={(e) =>
+                    updateFabricLink(index, 'metersReserved', parseFloat(e.target.value) || 0)
+                  }
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11 shrink-0 text-destructive hover:text-destructive"
+                onClick={() => removeFabricLink(index)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('jobs.selectFabric')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {fabrics.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>
-                      {f.fabricCode} — {f.type} ({(f.currentQty - f.reservedQty).toFixed(1)}m {t('jobs.available')})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="w-28 space-y-1">
-              <Input
-                type="number"
-                step="0.1"
-                min={0}
-                placeholder={t('jobs.meters')}
-                value={link.metersReserved}
-                onChange={(e) =>
-                  updateFabricLink(index, 'metersReserved', parseFloat(e.target.value) || 0)
-                }
-              />
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="text-destructive hover:text-destructive"
-              onClick={() => removeFabricLink(index)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      {/* Actions */}
+      <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-[44px]"
+          onClick={onCancel}
+        >
           {t('common.cancel')}
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? t('common.saving') : isEdit ? t('common.update') : t('common.create')}
+        <Button type="submit" className="min-h-[44px]" disabled={isLoading}>
+          {isLoading
+            ? t('common.saving')
+            : isEdit
+              ? t('common.update')
+              : t('common.create')}
         </Button>
       </div>
     </form>

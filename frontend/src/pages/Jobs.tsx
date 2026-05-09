@@ -64,37 +64,40 @@ export default function Jobs() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{t('jobs.title')}</h1>
+          <h1 className="text-2xl font-bold md:text-3xl">{t('jobs.title')}</h1>
           <p className="text-sm text-muted-foreground">
             {jobs.length} {t('jobs.totalJobs')}
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* View toggle */}
           <div className="flex rounded-md border">
             <button
               onClick={() => setView('kanban')}
               className={cn(
-                'px-3 py-1.5 text-sm transition-colors',
+                'flex min-h-[44px] min-w-[44px] items-center justify-center px-3 text-sm transition-colors',
                 view === 'kanban' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
               )}
+              aria-label="Kanban view"
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button
               onClick={() => setView('list')}
               className={cn(
-                'px-3 py-1.5 text-sm transition-colors',
+                'flex min-h-[44px] min-w-[44px] items-center justify-center px-3 text-sm transition-colors',
                 view === 'list' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
               )}
+              aria-label="List view"
             >
               <List className="h-4 w-4" />
             </button>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)}>
+          <Button className="min-h-[44px]" onClick={() => setShowCreateDialog(true)}>
             <Plus className="h-4 w-4" />
-            {t('jobs.newJob')}
+            <span>{t('jobs.newJob')}</span>
           </Button>
         </div>
       </div>
@@ -113,7 +116,7 @@ export default function Jobs() {
 
       {/* Create dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl rounded-xl sm:w-full">
           <DialogHeader>
             <DialogTitle>{t('jobs.createJob')}</DialogTitle>
             <DialogDescription>{t('jobs.fillDetails')}</DialogDescription>
@@ -131,17 +134,18 @@ export default function Jobs() {
 
       {/* Delete confirmation */}
       <Dialog open={!!deletingJobId} onOpenChange={() => setDeletingJobId(null)}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm rounded-xl sm:w-full">
           <DialogHeader>
             <DialogTitle>{t('jobs.deleteJob')}</DialogTitle>
             <DialogDescription>{t('jobs.deleteConfirm')}</DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeletingJobId(null)}>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button variant="outline" className="min-h-[44px]" onClick={() => setDeletingJobId(null)}>
               {t('common.cancel')}
             </Button>
             <Button
               variant="destructive"
+              className="min-h-[44px]"
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
             >
@@ -177,86 +181,174 @@ function JobsListView({
     )
   }
 
+  if (jobs.length === 0) {
+    return (
+      <p className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+        {t('jobs.noJobs')}
+      </p>
+    )
+  }
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t('jobs.jobNumber')}</TableHead>
-            <TableHead>{t('common.status')}</TableHead>
-            <TableHead>{t('jobs.priority')}</TableHead>
-            <TableHead>{t('jobs.piecesExpected')}</TableHead>
-            <TableHead>{t('tailors.name')}</TableHead>
-            <TableHead>{t('jobs.dueDate')}</TableHead>
-            <TableHead className="w-[80px]" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {jobs.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                {t('jobs.noJobs')}
-              </TableCell>
-            </TableRow>
-          )}
-          {jobs.map((job) => {
-            const delayed = isDelayed(job.dueDate, job.status)
-            const canDelete = ['DRAFT', 'CANCELED'].includes(job.status)
-            const canCancel = !['DISPATCHED', 'CANCELED'].includes(job.status)
-            return (
-              <TableRow key={job.id} className={cn(delayed && 'bg-red-50/30')}>
-                <TableCell className="font-mono text-xs">{job.jobNumber}</TableCell>
-                <TableCell>
+    <>
+      {/* Mobile: card list */}
+      <div className="space-y-2 md:hidden">
+        {jobs.map((job) => {
+          const delayed = isDelayed(job.dueDate, job.status)
+          const canCancel = !['DISPATCHED', 'CANCELED'].includes(job.status)
+          const canDelete = ['DRAFT', 'CANCELED'].includes(job.status)
+          return (
+            <div
+              key={job.id}
+              className={cn(
+                'rounded-lg border bg-card p-3',
+                delayed && 'border-red-200 bg-red-50/30',
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-mono text-xs text-muted-foreground">{job.jobNumber}</p>
+                  <p className="text-sm font-medium">
+                    {job.piecesExpected} {t('common.pieces')}
+                    {job.piecesCompleted > 0 && (
+                      <span className="ms-1 text-muted-foreground">
+                        / {job.piecesCompleted} {t('common.done')}
+                      </span>
+                    )}
+                  </p>
+                  {job.tailor && (
+                    <p className="truncate text-xs text-muted-foreground">{job.tailor.name}</p>
+                  )}
+                  {job.dueDate && (
+                    <p className={cn('text-xs', delayed ? 'font-medium text-red-600' : 'text-muted-foreground')}>
+                      {formatDate(job.dueDate)}
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
                   <Badge className={cn('border text-xs', STATUS_COLORS[job.status as JobStatus])}>
                     {t(getStatusKey(job.status as JobStatus))}
                   </Badge>
-                </TableCell>
-                <TableCell>
-                  {job.priority && (
-                    <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', PRIORITY_COLORS[job.priority])}>
+                  {job.priority && job.priority !== 'NORMAL' && (
+                    <span
+                      className={cn(
+                        'rounded-full px-1.5 py-0.5 text-xs font-medium',
+                        PRIORITY_COLORS[job.priority],
+                      )}
+                    >
                       {t(getPriorityKey(job.priority))}
                     </span>
                   )}
-                </TableCell>
-                <TableCell>
-                  {job.piecesExpected}
-                  {job.piecesCompleted > 0 && (
-                    <span className="text-muted-foreground"> / {job.piecesCompleted}</span>
+                </div>
+              </div>
+              {(canCancel || canDelete) && (
+                <div className="mt-2 flex justify-end gap-1 border-t pt-2">
+                  {canCancel && (
+                    <button
+                      className="flex min-h-[36px] items-center gap-1 rounded px-2 text-xs text-muted-foreground hover:bg-amber-100 hover:text-amber-700"
+                      onClick={() => onCancel(job)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      {t('jobs.cancelJob')}
+                    </button>
                   )}
-                </TableCell>
-                <TableCell>{job.tailor?.name ?? <span className="text-muted-foreground">—</span>}</TableCell>
-                <TableCell>
-                  <span className={cn('text-sm', delayed && 'text-red-600 font-medium')}>
-                    {formatDate(job.dueDate)}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    {canCancel && (
-                      <button
-                        className="rounded p-1 text-muted-foreground hover:bg-amber-100 hover:text-amber-700"
-                        title={t('jobs.cancelJob')}
-                        onClick={() => onCancel(job)}
+                  {canDelete && (
+                    <button
+                      className="flex min-h-[36px] items-center gap-1 rounded px-2 text-xs text-muted-foreground hover:bg-red-100 hover:text-red-700"
+                      onClick={() => onDelete(job.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {t('common.delete')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden rounded-md border md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('jobs.jobNumber')}</TableHead>
+              <TableHead>{t('common.status')}</TableHead>
+              <TableHead>{t('jobs.priority')}</TableHead>
+              <TableHead>{t('jobs.piecesExpected')}</TableHead>
+              <TableHead>{t('tailors.name')}</TableHead>
+              <TableHead>{t('jobs.dueDate')}</TableHead>
+              <TableHead className="w-[80px]" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {jobs.map((job) => {
+              const delayed = isDelayed(job.dueDate, job.status)
+              const canDelete = ['DRAFT', 'CANCELED'].includes(job.status)
+              const canCancel = !['DISPATCHED', 'CANCELED'].includes(job.status)
+              return (
+                <TableRow key={job.id} className={cn(delayed && 'bg-red-50/30')}>
+                  <TableCell className="font-mono text-xs">{job.jobNumber}</TableCell>
+                  <TableCell>
+                    <Badge className={cn('border text-xs', STATUS_COLORS[job.status as JobStatus])}>
+                      {t(getStatusKey(job.status as JobStatus))}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {job.priority && (
+                      <span
+                        className={cn(
+                          'rounded-full px-2 py-0.5 text-xs font-medium',
+                          PRIORITY_COLORS[job.priority],
+                        )}
                       >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
+                        {t(getPriorityKey(job.priority))}
+                      </span>
                     )}
-                    {canDelete && (
-                      <button
-                        className="rounded p-1 text-muted-foreground hover:bg-red-100 hover:text-red-700"
-                        title={t('jobs.deleteJob')}
-                        onClick={() => onDelete(job.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                  </TableCell>
+                  <TableCell>
+                    {job.piecesExpected}
+                    {job.piecesCompleted > 0 && (
+                      <span className="text-muted-foreground"> / {job.piecesCompleted}</span>
                     )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </div>
+                  </TableCell>
+                  <TableCell>
+                    {job.tailor?.name ?? <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell>
+                    <span className={cn('text-sm', delayed && 'font-medium text-red-600')}>
+                      {formatDate(job.dueDate)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      {canCancel && (
+                        <button
+                          className="rounded p-1.5 text-muted-foreground hover:bg-amber-100 hover:text-amber-700"
+                          title={t('jobs.cancelJob')}
+                          onClick={() => onCancel(job)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          className="rounded p-1.5 text-muted-foreground hover:bg-red-100 hover:text-red-700"
+                          title={t('jobs.deleteJob')}
+                          onClick={() => onDelete(job.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   )
 }

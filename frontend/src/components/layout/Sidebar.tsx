@@ -17,25 +17,25 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-e bg-card">
+    <aside className="flex h-screen w-60 flex-col border-e bg-card scrollbar-thin">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-2.5 border-b px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b px-5">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Scissors className="h-4 w-4" />
         </div>
         <span className="font-semibold tracking-tight">Workshop</span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-1 px-3">
+      <nav className="flex-1 overflow-y-auto py-3 scrollbar-thin" aria-label="Main navigation">
+        <ul className="space-y-0.5 px-3">
           {navItems.map(({ to, label, icon: Icon }) => (
             <li key={to}>
               <NavLink
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    'flex min-h-[40px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -50,11 +50,11 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Language switcher + User */}
-      <div className="border-t p-3 space-y-1">
+      {/* Language + User */}
+      <div className="shrink-0 space-y-0.5 border-t p-3">
         <LanguageSwitcher />
-        <div className="flex items-center gap-3 px-2 py-1.5">
-          <UserButton afterSignOutUrl="/sign-in" />
+        <div className="flex min-h-[40px] items-center gap-3 rounded-lg px-3 py-2">
+          <UserButton />
           <span className="text-sm text-muted-foreground">{t('nav.account')}</span>
         </div>
       </div>
