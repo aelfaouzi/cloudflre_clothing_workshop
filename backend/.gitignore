@@ -1,0 +1,5 @@
+node_modules/
+dist/
+
+# Wrangler local dev state and build cache
+.wrangler/
