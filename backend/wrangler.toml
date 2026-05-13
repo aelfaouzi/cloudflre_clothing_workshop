@@ -43,7 +43,7 @@ id = "daa956ba27d447ba8a03929902ba020c"                  # replace: wrangler kv 
 
 [env.staging.vars]
 APP_ENV = "staging"
-CORS_ORIGIN = "https://staging.YOUR_PAGES_PROJECT.pages.dev"
+CORS_ORIGIN = "https://staging.clothing-workshop-frontend.pages.dev"
 
 # Secrets:
 #   wrangler secret put CLERK_SECRET_KEY --env staging
@@ -66,7 +66,7 @@ id = "abe6e5cf71e442eb811e1c6aa3323f9b"               # replace: wrangler kv nam
 
 [env.production.vars]
 APP_ENV = "production"
-CORS_ORIGIN = "https://YOUR_PAGES_PROJECT.pages.dev"
+CORS_ORIGIN = "https://clothing-workshop-frontend.pages.dev/"
 
 # Secrets:
 #   wrangler secret put CLERK_SECRET_KEY --env production
