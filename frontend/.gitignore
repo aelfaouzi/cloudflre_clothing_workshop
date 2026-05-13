@@ -7,3 +7,7 @@ dist/
 # Vite compiled config (source is vite.config.ts)
 vite.config.js
 vite.config.d.ts
+
+# Local env (never commit secrets)
+.env.local
+.env.*.local
