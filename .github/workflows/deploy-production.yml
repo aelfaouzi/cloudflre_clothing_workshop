@@ -63,7 +63,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY_PRODUCTION }}
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_PRODUCTION }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL_PRODUCTION }}
 
       - name: Deploy frontend to Pages (production)
         run: npm run deploy:production
