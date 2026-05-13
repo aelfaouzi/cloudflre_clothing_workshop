@@ -3,9 +3,14 @@ main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"   # optional: wrangler picks it up from CLOUDFLARE_ACCOUNT_ID env var
+
+# ── Local development ──────────────────────────────────────────────────────────
+# Used by `wrangler dev` and `npm run db:migrate:local`
+
 [[d1_databases]]
 binding = "DB"
-database_name = "app_db"
+database_name = "workshop_local"
 database_id = "5720c689-d4e9-4598-81f1-5a2a33b9a812"
 
 [[kv_namespaces]]
@@ -13,8 +18,55 @@ binding = "CACHE"
 id = "21e5f8f94c354e1eaca5b6a4043242d3"
 
 [vars]
-ENVIRONMENT = "development"
+APP_ENV = "development"
 CORS_ORIGIN = "http://localhost:5173"
 
-# Secrets (set via wrangler secret put):
-# CLERK_SECRET_KEY
+# Secrets — set once, never committed:
+#   wrangler secret put CLERK_SECRET_KEY
+
+
+# ── Staging ────────────────────────────────────────────────────────────────────
+# Deployed from the `develop` branch.
+# One-time setup: see DEPLOYMENT.md § "Provision Cloudflare resources"
+
+[env.staging]
+name = "clothing-workshop-api-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "workshop_staging"
+database_id = "69e136ac-1f90-4314-a79e-0bf445e0197d"         # replace: wrangler d1 create workshop_staging
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "daa956ba27d447ba8a03929902ba020c"                  # replace: wrangler kv namespace create workshop_kv_staging
+
+[env.staging.vars]
+APP_ENV = "staging"
+CORS_ORIGIN = "https://staging.YOUR_PAGES_PROJECT.pages.dev"
+
+# Secrets:
+#   wrangler secret put CLERK_SECRET_KEY --env staging
+
+
+# ── Production ─────────────────────────────────────────────────────────────────
+# Deployed from the `main` branch.
+
+[env.production]
+name = "clothing-workshop-api"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "workshop_production"
+database_id = "750bbce6-858c-4b10-985d-be02640cfab8"      # replace: wrangler d1 create workshop_production
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "abe6e5cf71e442eb811e1c6aa3323f9b"               # replace: wrangler kv namespace create workshop_kv_production
+
+[env.production.vars]
+APP_ENV = "production"
+CORS_ORIGIN = "https://YOUR_PAGES_PROJECT.pages.dev"
+
+# Secrets:
+#   wrangler secret put CLERK_SECRET_KEY --env production
