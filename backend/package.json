@@ -4,17 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "db:migrate:local": "wrangler d1 migrations apply app_db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply app_db --remote",
-    "db:create-migration": "wrangler d1 migrations create app_db",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:production": "wrangler deploy --env production",
+    "db:new": "wrangler d1 migrations create workshop_local",
+    "db:migrate:local": "wrangler d1 migrations apply workshop_local --local",
+    "db:migrate:staging": "wrangler d1 migrations apply workshop_staging --env staging",
+    "db:migrate:production": "wrangler d1 migrations apply workshop_production --env production"
   },
   "dependencies": {
     "@clerk/backend": "^1.3.0",
     "@hono/clerk-auth": "^2.0.1",
-    "drizzle-orm": "^0.32.0",
     "@hono/zod-validator": "^0.3.0",
+    "drizzle-orm": "^0.32.0",
     "hono": "^4.4.0",
     "zod": "^3.23.8"
   },
@@ -22,6 +24,6 @@
     "@cloudflare/workers-types": "^4.20240524.0",
     "drizzle-kit": "^0.22.0",
     "typescript": "^5.4.5",
-    "wrangler": "^3.60.0"
+    "wrangler": "^4.90.1"
   }
 }

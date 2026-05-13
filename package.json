@@ -1,0 +1,19 @@
+{
+  "name": "clothing-workshop",
+  "private": true,
+  "scripts": {
+    "dev:api": "npm run dev --prefix backend",
+    "dev:web": "npm run dev --prefix frontend",
+
+    "build:web": "npm run build --prefix frontend",
+    "type-check": "npm run type-check --prefix backend && npm run type-check --prefix frontend",
+
+    "migrate:local": "npm run db:migrate:local --prefix backend",
+    "migrate:staging": "npm run db:migrate:staging --prefix backend",
+    "migrate:production": "npm run db:migrate:production --prefix backend",
+    "db:new": "npm run db:new --prefix backend",
+
+    "deploy:staging": "npm run build:web && npm run deploy:staging --prefix backend && npm run deploy:staging --prefix frontend",
+    "deploy:production": "npm run build:web && npm run deploy:production --prefix backend && npm run deploy:production --prefix frontend"
+  }
+}
