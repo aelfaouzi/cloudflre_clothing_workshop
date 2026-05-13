@@ -14,13 +14,15 @@ export const authMiddleware = createMiddleware<AppContext>(async (c, next) => {
   try {
     const payload = await verifyToken(token, {
       secretKey: c.env.CLERK_SECRET_KEY,
+      jwtKey: c.env.CLERK_JWT_KEY,
     })
 
     c.set('userId', payload.sub)
     c.set('tenantId', payload.sub)
 
     await next()
-  } catch {
+  } catch (err) {
+    console.error('[auth] verifyToken failed:', err)
     throw new HTTPException(401, { message: 'Invalid or expired token' })
   }
 })

@@ -5,6 +5,7 @@ export interface Env {
   DB: D1Database
   CACHE: KVNamespace
   CLERK_SECRET_KEY: string
+  CLERK_JWT_KEY: string | undefined
   CORS_ORIGIN: string
   ENVIRONMENT: string
 }

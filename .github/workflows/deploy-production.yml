@@ -23,10 +23,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 22.20.2
+      - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
-          node-version: 22.20.2
+          node-version: '22'
           cache: npm
           cache-dependency-path: |
             backend/package-lock.json
@@ -63,7 +63,7 @@ jobs:
         working-directory: frontend
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY_PRODUCTION }}
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_PRODUCTION }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL_PRODUCTION }}
 
       - name: Deploy frontend to Pages (production)
         run: npm run deploy:production
