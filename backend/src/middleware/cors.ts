@@ -7,6 +7,8 @@ export function createCorsMiddleware(): MiddlewareHandler<AppContext> {
     origin: (origin, c) => {
       const allowed = c.env.CORS_ORIGIN ?? 'http://localhost:5173'
       if (origin === allowed || allowed === '*') return origin
+      // allow any localhost port in development
+      if (c.env.APP_ENV === 'development' && /^http:\/\/localhost:\d+$/.test(origin ?? '')) return origin
       return null
     },
     allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
