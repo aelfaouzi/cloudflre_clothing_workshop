@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn, STATUS_COLORS, STATUS_DOT_COLORS, getStatusKey, formatDate, isDelayed } from '@/lib/utils'
 import { useDashboard } from '@/hooks/useDashboard'
+import OnboardingChecklist from '@/components/OnboardingChecklist'
 import type { JobStatus } from '@/types'
 
 const ACTIVE_STATUSES: JobStatus[] = ['DRAFT', 'CUTTING', 'SEWING', 'READY']
@@ -25,6 +26,11 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold md:text-3xl">{t('dashboard.title')}</h1>
+
+      <OnboardingChecklist
+        tailorCount={data?.tailorWorkload.length ?? 0}
+        jobCount={(data?.recentJobs.length ?? 0) + (data?.summary.totalActiveJobs ?? 0)}
+      />
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">

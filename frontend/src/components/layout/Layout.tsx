@@ -1,12 +1,9 @@
-import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
-import MobileDrawer from './MobileDrawer'
+import BottomTabBar from './BottomTabBar'
 
 export default function Layout() {
-  const [drawerOpen, setDrawerOpen] = useState(false)
-
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop sidebar — visible only on lg+ */}
@@ -14,22 +11,23 @@ export default function Layout() {
         <Sidebar />
       </div>
 
-      {/* Mobile drawer */}
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
       {/* Right side: top bar + scrollable content */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Mobile top bar — hidden on lg+ */}
         <div className="lg:hidden">
-          <TopBar onMenuClick={() => setDrawerOpen(true)} />
+          <TopBar />
         </div>
 
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
+          {/* pb-20 on mobile so content clears the bottom tab bar; lg overrides it */}
+          <div className="mx-auto max-w-7xl p-4 pb-20 md:p-6 md:pb-20 lg:p-8 lg:pb-8">
             <Outlet />
           </div>
         </main>
       </div>
+
+      {/* Mobile bottom tab bar — hidden on lg+ */}
+      <BottomTabBar />
     </div>
   )
 }
