@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Plus, Trash2 } from 'lucide-react'
@@ -20,11 +20,11 @@ import { useTailors } from '@/hooks/useTailors'
 import type { JobOrder, FabricLinkInput } from '@/types'
 
 const schema = z.object({
-  tailorId: z.string().optional(),
-  priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).default('NORMAL'),
+  tailorId:       z.string().min(1),
+  priority:       z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).default('NORMAL'),
   piecesExpected: z.coerce.number().int().min(1),
-  dueDate: z.string().optional(),
-  notes: z.string().optional(),
+  dueDate:        z.string().min(1),
+  notes:          z.string().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -45,89 +45,110 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
 
   const [fabricLinks, setFabricLinks] = useState<FabricLinkInput[]>(
     defaultValues?.fabricLinks?.map((l) => ({
-      fabricId: l.fabricId,
+      fabricId:       l.fabricId,
       metersReserved: l.metersReserved,
     })) ?? [],
   )
+  const [fabricLinkError, setFabricLinkError] = useState(false)
 
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      tailorId: defaultValues?.tailorId ?? undefined,
-      priority: (defaultValues?.priority as FormValues['priority']) ?? 'NORMAL',
+      tailorId:       defaultValues?.tailorId       ?? '',
+      priority:       (defaultValues?.priority as FormValues['priority']) ?? 'NORMAL',
       piecesExpected: defaultValues?.piecesExpected ?? 1,
-      dueDate: defaultValues?.dueDate ?? '',
-      notes: defaultValues?.notes ?? '',
+      dueDate:        defaultValues?.dueDate        ?? '',
+      notes:          defaultValues?.notes          ?? '',
     },
   })
 
   const handleFormSubmit = (values: FormValues) => {
+    const hasInvalidLink = fabricLinks.some((l) => !l.fabricId || l.metersReserved <= 0)
+    if (hasInvalidLink) {
+      setFabricLinkError(true)
+      return
+    }
+    setFabricLinkError(false)
     onSubmit({ ...values, fabricLinks })
   }
 
-  const addFabricLink = () =>
+  const addFabricLink = () => {
     setFabricLinks((prev) => [...prev, { fabricId: '', metersReserved: 0 }])
+    setFabricLinkError(false)
+  }
 
   const removeFabricLink = (index: number) =>
     setFabricLinks((prev) => prev.filter((_, i) => i !== index))
 
-  const updateFabricLink = (
-    index: number,
-    field: keyof FabricLinkInput,
-    value: string | number,
-  ) =>
+  const updateFabricLink = (index: number, field: keyof FabricLinkInput, value: string | number) => {
     setFabricLinks((prev) =>
       prev.map((link, i) => (i === index ? { ...link, [field]: value } : link)),
     )
+    setFabricLinkError(false)
+  }
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
       {/* Row 1: Tailor + Priority */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        {/* Tailor — Controller so react-hook-form validates it */}
         <div className="space-y-2">
-          <Label>{t('jobs.assignTailor')}</Label>
-          <Select
-            value={watch('tailorId') ?? ''}
-            onValueChange={(v) => setValue('tailorId', v || undefined)}
-          >
-            <SelectTrigger className="min-h-[44px]">
-              <SelectValue placeholder={t('jobs.selectTailor')} />
-            </SelectTrigger>
-            <SelectContent>
-              {activeTailors.map((tailor) => (
-                <SelectItem key={tailor.id} value={tailor.id}>
-                  {tailor.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label>
+            {t('jobs.assignTailor')}
+            <span className="ms-0.5 text-destructive">*</span>
+          </Label>
+          <Controller
+            name="tailorId"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                <SelectTrigger className={`min-h-[44px] ${errors.tailorId ? 'border-destructive' : ''}`}>
+                  <SelectValue placeholder={t('jobs.selectTailor')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeTailors.map((tailor) => (
+                    <SelectItem key={tailor.id} value={tailor.id}>
+                      {tailor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.tailorId && (
+            <p className="text-xs text-destructive">{t('validation.required')}</p>
+          )}
         </div>
 
+        {/* Priority — Controller so react-hook-form tracks it */}
         <div className="space-y-2">
           <Label>{t('jobs.priority')}</Label>
-          <Select
-            value={watch('priority')}
-            onValueChange={(v) => setValue('priority', v as FormValues['priority'])}
-          >
-            <SelectTrigger className="min-h-[44px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="LOW">{t('priority.low')}</SelectItem>
-              <SelectItem value="NORMAL">{t('priority.normal')}</SelectItem>
-              <SelectItem value="HIGH">{t('priority.high')}</SelectItem>
-              <SelectItem value="URGENT">{t('priority.urgent')}</SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="priority"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger className="min-h-[44px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LOW">{t('priority.low')}</SelectItem>
+                  <SelectItem value="NORMAL">{t('priority.normal')}</SelectItem>
+                  <SelectItem value="HIGH">{t('priority.high')}</SelectItem>
+                  <SelectItem value="URGENT">{t('priority.urgent')}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
 
-        {/* Row 2: Pieces + Due Date */}
+        {/* Pieces Expected */}
         <div className="space-y-2">
           <Label htmlFor="piecesExpected">{t('jobs.piecesExpectedLabel')}</Label>
           <Input
@@ -135,7 +156,7 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
             type="number"
             inputMode="numeric"
             min={1}
-            className="min-h-[44px]"
+            className={`min-h-[44px] ${errors.piecesExpected ? 'border-destructive' : ''}`}
             {...register('piecesExpected')}
           />
           {errors.piecesExpected && (
@@ -143,14 +164,21 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
           )}
         </div>
 
+        {/* Due Date */}
         <div className="space-y-2">
-          <Label htmlFor="dueDate">{t('jobs.dueDate')}</Label>
+          <Label htmlFor="dueDate">
+            {t('jobs.dueDate')}
+            <span className="ms-0.5 text-destructive">*</span>
+          </Label>
           <Input
             id="dueDate"
             type="date"
-            className="min-h-[44px]"
+            className={`min-h-[44px] ${errors.dueDate ? 'border-destructive' : ''}`}
             {...register('dueDate')}
           />
+          {errors.dueDate && (
+            <p className="text-xs text-destructive">{t('validation.required')}</p>
+          )}
         </div>
       </div>
 
@@ -187,7 +215,9 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
                   value={link.fabricId}
                   onValueChange={(v) => updateFabricLink(index, 'fabricId', v)}
                 >
-                  <SelectTrigger className="min-h-[44px]">
+                  <SelectTrigger
+                    className={`min-h-[44px] ${fabricLinkError && !link.fabricId ? 'border-destructive' : ''}`}
+                  >
                     <SelectValue placeholder={t('jobs.selectFabric')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -205,10 +235,10 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
                   type="number"
                   inputMode="decimal"
                   step="0.1"
-                  min={0}
-                  className="min-h-[44px]"
+                  min={0.1}
+                  className={`min-h-[44px] ${fabricLinkError && link.metersReserved <= 0 ? 'border-destructive' : ''}`}
                   placeholder={t('jobs.meters')}
-                  value={link.metersReserved}
+                  value={link.metersReserved || ''}
                   onChange={(e) =>
                     updateFabricLink(index, 'metersReserved', parseFloat(e.target.value) || 0)
                   }
@@ -226,24 +256,19 @@ export default function JobForm({ defaultValues, onSubmit, onCancel, isLoading, 
             </div>
           ))}
         </div>
+
+        {fabricLinkError && (
+          <p className="text-xs text-destructive">{t('jobs.fabricLinkInvalid')}</p>
+        )}
       </div>
 
       {/* Actions */}
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-[44px]"
-          onClick={onCancel}
-        >
+        <Button type="button" variant="outline" className="min-h-[44px]" onClick={onCancel}>
           {t('common.cancel')}
         </Button>
         <Button type="submit" className="min-h-[44px]" disabled={isLoading}>
-          {isLoading
-            ? t('common.saving')
-            : isEdit
-              ? t('common.update')
-              : t('common.create')}
+          {isLoading ? t('common.saving') : isEdit ? t('common.update') : t('common.create')}
         </Button>
       </div>
     </form>

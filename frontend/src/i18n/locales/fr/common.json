@@ -136,7 +136,9 @@
     "fillDetails": "Remplissez les détails pour créer une nouvelle commande de production.",
     "advanceTo": "Avancer vers {{status}}",
     "cancelJob": "Annuler la commande",
-    "confirmTransition": "Confirmer"
+    "confirmTransition": "Confirmer",
+    "editDetails": "Modifier les détails de l'ordre de production.",
+    "fabricLinkInvalid": "Chaque ligne tissu doit avoir un tissu sélectionné et des mètres > 0."
   },
   "settings": {
     "title": "Paramètres",

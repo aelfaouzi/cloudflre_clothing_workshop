@@ -37,6 +37,11 @@ async function request<T>(
     },
   })
 
+  // 204 No Content — DELETE endpoints return an empty body
+  if (res.status === 204) {
+    return undefined as T
+  }
+
   const body = await res.json() as ApiResponse<T> | { success: false; error: { message: string; code: string } }
 
   if (!res.ok || !body.success) {

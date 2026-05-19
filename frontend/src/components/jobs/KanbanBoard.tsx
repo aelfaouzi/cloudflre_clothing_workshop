@@ -16,6 +16,8 @@ const KANBAN_COLUMNS: JobStatus[] = ['DRAFT', 'CUTTING', 'SEWING', 'READY', 'DIS
 interface Props {
   jobs: JobOrder[]
   isLoading?: boolean
+  onEdit?: (job: JobOrder) => void
+  onDelete?: (id: string) => void
 }
 
 interface TransitionModalState {
@@ -23,7 +25,7 @@ interface TransitionModalState {
   targetStatus: JobStatus
 }
 
-export default function KanbanBoard({ jobs, isLoading }: Props) {
+export default function KanbanBoard({ jobs, isLoading, onEdit, onDelete }: Props) {
   const { t } = useTranslation('common')
   const [transitionModal, setTransitionModal] = useState<TransitionModalState | null>(null)
   const [piecesCompleted, setPiecesCompleted] = useState('')
@@ -110,6 +112,8 @@ export default function KanbanBoard({ jobs, isLoading }: Props) {
                       key={job.id}
                       job={job}
                       onClick={NEXT_STATUS[job.status] ? () => handleCardClick(job) : undefined}
+                      onEdit={onEdit ? () => onEdit(job) : undefined}
+                      onDelete={onDelete ? () => onDelete(job.id) : undefined}
                     />
                   ))}
                 </div>

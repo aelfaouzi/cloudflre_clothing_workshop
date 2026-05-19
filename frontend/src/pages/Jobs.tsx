@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, LayoutGrid, List, Trash2, X } from 'lucide-react'
+import { Plus, LayoutGrid, List, Trash2, X, Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -21,7 +21,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import KanbanBoard from '@/components/jobs/KanbanBoard'
 import JobForm from '@/components/jobs/JobForm'
-import { useJobs, useCreateJob, useDeleteJob, useTransitionJob } from '@/hooks/useJobs'
+import { useJobs, useCreateJob, useUpdateJob, useDeleteJob, useTransitionJob } from '@/hooks/useJobs'
 import {
   cn,
   STATUS_COLORS,
@@ -39,16 +39,24 @@ export default function Jobs() {
   const { t } = useTranslation('common')
   const [view, setView] = useState<ViewMode>('kanban')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [editingJob, setEditingJob] = useState<JobOrder | null>(null)
   const [deletingJobId, setDeletingJobId] = useState<string | null>(null)
 
   const { data: jobs = [], isLoading } = useJobs()
   const createMutation = useCreateJob()
+  const updateMutation = useUpdateJob()
   const deleteMutation = useDeleteJob()
   const transitionMutation = useTransitionJob()
 
   const handleCreate = async (values: Parameters<typeof createMutation.mutateAsync>[0]) => {
     await createMutation.mutateAsync(values)
     setShowCreateDialog(false)
+  }
+
+  const handleUpdate = async (values: Parameters<typeof updateMutation.mutateAsync>[0]['data']) => {
+    if (!editingJob) return
+    await updateMutation.mutateAsync({ id: editingJob.id, data: values })
+    setEditingJob(null)
   }
 
   const handleDelete = async () => {
@@ -104,11 +112,12 @@ export default function Jobs() {
 
       {/* Content */}
       {view === 'kanban' ? (
-        <KanbanBoard jobs={jobs} isLoading={isLoading} />
+        <KanbanBoard jobs={jobs} isLoading={isLoading} onEdit={setEditingJob} onDelete={setDeletingJobId} />
       ) : (
         <JobsListView
           jobs={jobs}
           isLoading={isLoading}
+          onEdit={setEditingJob}
           onDelete={setDeletingJobId}
           onCancel={handleCancel}
         />
@@ -128,6 +137,28 @@ export default function Jobs() {
           />
           {createMutation.isError && (
             <p className="text-sm text-destructive">{(createMutation.error as Error).message}</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editingJob} onOpenChange={(open) => { if (!open) setEditingJob(null) }}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-2xl rounded-xl sm:w-full">
+          <DialogHeader>
+            <DialogTitle>{t('jobs.editJob')}</DialogTitle>
+            <DialogDescription>{t('jobs.editDetails')}</DialogDescription>
+          </DialogHeader>
+          {editingJob && (
+            <JobForm
+              defaultValues={editingJob}
+              onSubmit={handleUpdate}
+              onCancel={() => setEditingJob(null)}
+              isLoading={updateMutation.isPending}
+              isEdit
+            />
+          )}
+          {updateMutation.isError && (
+            <p className="text-sm text-destructive">{(updateMutation.error as Error).message}</p>
           )}
         </DialogContent>
       </Dialog>
@@ -161,11 +192,13 @@ export default function Jobs() {
 function JobsListView({
   jobs,
   isLoading,
+  onEdit,
   onDelete,
   onCancel,
 }: {
   jobs: JobOrder[]
   isLoading: boolean
+  onEdit: (job: JobOrder) => void
   onDelete: (id: string) => void
   onCancel: (job: JobOrder) => void
 }) {
@@ -195,6 +228,7 @@ function JobsListView({
       <div className="space-y-2 md:hidden">
         {jobs.map((job) => {
           const delayed = isDelayed(job.dueDate, job.status)
+          const canEdit = job.status === 'DRAFT'
           const canCancel = !['DISPATCHED', 'CANCELED'].includes(job.status)
           const canDelete = ['DRAFT', 'CANCELED'].includes(job.status)
           return (
@@ -241,8 +275,17 @@ function JobsListView({
                   )}
                 </div>
               </div>
-              {(canCancel || canDelete) && (
+              {(canEdit || canCancel || canDelete) && (
                 <div className="mt-2 flex justify-end gap-1 border-t pt-2">
+                  {canEdit && (
+                    <button
+                      className="flex min-h-[36px] items-center gap-1 rounded px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => onEdit(job)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      {t('common.edit')}
+                    </button>
+                  )}
                   {canCancel && (
                     <button
                       className="flex min-h-[36px] items-center gap-1 rounded px-2 text-xs text-muted-foreground hover:bg-amber-100 hover:text-amber-700"
@@ -279,12 +322,13 @@ function JobsListView({
               <TableHead>{t('jobs.piecesExpected')}</TableHead>
               <TableHead>{t('tailors.name')}</TableHead>
               <TableHead>{t('jobs.dueDate')}</TableHead>
-              <TableHead className="w-[80px]" />
+              <TableHead className="w-[100px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {jobs.map((job) => {
               const delayed = isDelayed(job.dueDate, job.status)
+              const canEdit = job.status === 'DRAFT'
               const canDelete = ['DRAFT', 'CANCELED'].includes(job.status)
               const canCancel = !['DISPATCHED', 'CANCELED'].includes(job.status)
               return (
@@ -323,6 +367,15 @@ function JobsListView({
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      {canEdit && (
+                        <button
+                          className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                          title={t('common.edit')}
+                          onClick={() => onEdit(job)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                       {canCancel && (
                         <button
                           className="rounded p-1.5 text-muted-foreground hover:bg-amber-100 hover:text-amber-700"

@@ -136,7 +136,9 @@
     "fillDetails": "Fill in the job details to create a new production order.",
     "advanceTo": "Advance Job to {{status}}",
     "cancelJob": "Cancel job",
-    "confirmTransition": "Confirm"
+    "confirmTransition": "Confirm",
+    "editDetails": "Update the production order details.",
+    "fabricLinkInvalid": "Each fabric row needs a fabric selected and meters > 0."
   },
   "settings": {
     "title": "Settings",

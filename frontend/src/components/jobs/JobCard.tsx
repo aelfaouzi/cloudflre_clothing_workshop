@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, User } from 'lucide-react'
+import { AlertTriangle, Clock, User, Pencil, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -15,11 +15,15 @@ import type { JobOrder } from '@/types'
 interface Props {
   job: JobOrder
   onClick?: () => void
+  onEdit?: () => void
+  onDelete?: () => void
 }
 
-export default function JobCard({ job, onClick }: Props) {
+export default function JobCard({ job, onClick, onEdit, onDelete }: Props) {
   const { t } = useTranslation('common')
   const delayed = isDelayed(job.dueDate, job.status)
+  const canEdit   = job.status === 'DRAFT'
+  const canDelete = job.status === 'DRAFT' || job.status === 'CANCELED'
 
   return (
     <div
@@ -34,12 +38,12 @@ export default function JobCard({ job, onClick }: Props) {
         delayed && 'border-red-200 bg-red-50/30',
       )}
     >
-      {/* Top row: job number + badges */}
+      {/* Top row: job number + status badge */}
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className="font-mono text-xs font-medium text-muted-foreground">
           {job.jobNumber}
         </span>
-        <div className="flex shrink-0 flex-wrap justify-end gap-1">
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
           {job.priority && job.priority !== 'NORMAL' && (
             <span
               className={cn(
@@ -88,6 +92,33 @@ export default function JobCard({ job, onClick }: Props) {
             <Clock className="h-3 w-3 shrink-0" />
           )}
           <span>{formatDate(job.dueDate)}</span>
+        </div>
+      )}
+
+      {/* Card actions (edit / delete) — only shown when applicable */}
+      {(canEdit || canDelete) && (onEdit || onDelete) && (
+        <div
+          className="mt-2 flex justify-end gap-1 border-t pt-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {canEdit && onEdit && (
+            <button
+              onClick={onEdit}
+              aria-label={t('common.edit')}
+              className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {canDelete && onDelete && (
+            <button
+              onClick={onDelete}
+              aria-label={t('common.delete')}
+              className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground hover:bg-red-100 hover:text-red-600"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       )}
     </div>
