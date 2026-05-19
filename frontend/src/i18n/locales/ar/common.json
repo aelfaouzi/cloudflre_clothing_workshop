@@ -136,7 +136,9 @@
     "fillDetails": "أدخل تفاصيل الطلب لإنشاء أمر إنتاج جديد.",
     "advanceTo": "تقديم الطلب إلى {{status}}",
     "cancelJob": "إلغاء الطلب",
-    "confirmTransition": "تأكيد"
+    "confirmTransition": "تأكيد",
+    "editDetails": "تعديل تفاصيل أمر الإنتاج.",
+    "fabricLinkInvalid": "كل صف قماش يجب أن يحتوي على قماش مختار وأمتار > 0."
   },
   "settings": {
     "title": "الإعدادات",
