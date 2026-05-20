@@ -96,11 +96,11 @@ export default function Fabrics() {
                         {isLow && <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-red-500" />}
                         <span className="font-mono text-sm font-semibold">{fabric.fabricCode}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="truncate text-sm text-muted-foreground">
                         {fabric.type}{fabric.color ? ` • ${fabric.color}` : ''}
                       </p>
                       {fabric.supplier && (
-                        <p className="text-xs text-muted-foreground">{fabric.supplier}</p>
+                        <p className="truncate text-xs text-muted-foreground">{fabric.supplier}</p>
                       )}
                     </div>
                     <div className="ms-3 shrink-0 text-end">

@@ -58,15 +58,15 @@ name = "clothing-workshop-api"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "workshop_production"
-database_id = "750bbce6-858c-4b10-985d-be02640cfab8"      # replace: wrangler d1 create workshop_production
+database_id = "be0668a8-2112-452b-96e9-61bf307a1feb"      # replace: wrangler d1 create workshop_production
 
 [[env.production.kv_namespaces]]
 binding = "CACHE"
-id = "abe6e5cf71e442eb811e1c6aa3323f9b"               # replace: wrangler kv namespace create workshop_kv_production
+id = "bd68e2d08e784d0b84d446799c47c568"               # replace: wrangler kv namespace create workshop_kv_production
 
 [env.production.vars]
 APP_ENV = "production"
-CORS_ORIGIN = "https://clothing-workshop-frontend.pages.dev"
+CORS_ORIGIN = "https://latelier-moda.com"
 
 # Secrets:
 #   wrangler secret put CLERK_SECRET_KEY --env production
