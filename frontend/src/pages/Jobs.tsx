@@ -276,7 +276,7 @@ function JobsListView({
                 </div>
               </div>
               {(canEdit || canCancel || canDelete) && (
-                <div className="mt-2 flex justify-end gap-1 border-t pt-2">
+                <div className="mt-2 flex flex-wrap justify-end gap-1 border-t pt-2">
                   {canEdit && (
                     <button
                       className="flex min-h-[36px] items-center gap-1 rounded px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
