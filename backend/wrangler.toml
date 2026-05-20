@@ -35,11 +35,11 @@ name = "clothing-workshop-api-staging"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "workshop_staging"
-database_id = "69e136ac-1f90-4314-a79e-0bf445e0197d"         # replace: wrangler d1 create workshop_staging
+database_id = "7db150ec-fa36-4968-8306-3d62b0321906"
 
 [[env.staging.kv_namespaces]]
 binding = "CACHE"
-id = "daa956ba27d447ba8a03929902ba020c"                  # replace: wrangler kv namespace create workshop_kv_staging
+id = "e6ff3021ee6240a7b98786f7ca75c411"
 
 [env.staging.vars]
 APP_ENV = "staging"
