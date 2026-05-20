@@ -88,10 +88,10 @@ export default function Tailors() {
                 className={cn('rounded-lg border bg-card p-3', !tailor.isActive && 'opacity-60')}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-medium">{tailor.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{tailor.name}</p>
                     {tailor.phone && (
-                      <p className="text-sm text-muted-foreground">{tailor.phone}</p>
+                      <p className="truncate text-sm text-muted-foreground">{tailor.phone}</p>
                     )}
                     {tailor.payRatePerPiece ? (
                       <p className="text-xs text-muted-foreground">
