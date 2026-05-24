@@ -20,12 +20,16 @@ export interface Fabric {
   updatedAt: string
 }
 
+export type PaymentType = 'per_piece' | 'per_week'
+
 export interface Tailor {
   id: string
   tenantId: string
   name: string
   phone: string | null
+  paymentType: PaymentType
   payRatePerPiece: number
+  payRatePerWeek: number
   isActive: boolean
   assignedJobsCount: number
   createdAt: string
@@ -146,14 +150,18 @@ export interface UpdateFabricInput {
 export interface CreateTailorInput {
   name: string
   phone?: string
+  paymentType?: PaymentType
   payRatePerPiece?: number
+  payRatePerWeek?: number
   isActive?: boolean
 }
 
 export interface UpdateTailorInput {
   name?: string
   phone?: string
+  paymentType?: PaymentType
   payRatePerPiece?: number
+  payRatePerWeek?: number
   isActive?: boolean
 }
 
