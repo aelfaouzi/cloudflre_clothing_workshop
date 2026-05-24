@@ -25,7 +25,9 @@ export class TailorService {
       tenantId,
       name: input.name,
       phone: input.phone ?? null,
+      paymentType: input.paymentType ?? 'per_piece',
       payRatePerPiece: input.payRatePerPiece ?? 0,
+      payRatePerWeek: input.payRatePerWeek ?? 0,
       isActive: input.isActive ?? true,
       assignedJobsCount: 0,
       createdAt: ts,
@@ -38,7 +40,9 @@ export class TailorService {
     return this.tailorRepo.update(id, tenantId, {
       ...(input.name !== undefined && { name: input.name }),
       ...(input.phone !== undefined && { phone: input.phone }),
+      ...(input.paymentType !== undefined && { paymentType: input.paymentType }),
       ...(input.payRatePerPiece !== undefined && { payRatePerPiece: input.payRatePerPiece }),
+      ...(input.payRatePerWeek !== undefined && { payRatePerWeek: input.payRatePerWeek }),
       ...(input.isActive !== undefined && { isActive: input.isActive }),
     })
   }

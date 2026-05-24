@@ -93,11 +93,14 @@ export default function Tailors() {
                     {tailor.phone && (
                       <p className="truncate text-sm text-muted-foreground">{tailor.phone}</p>
                     )}
-                    {tailor.payRatePerPiece ? (
-                      <p className="text-xs text-muted-foreground">
-                        ${tailor.payRatePerPiece.toFixed(2)}/pc
-                      </p>
-                    ) : null}
+                    {tailor.paymentType === 'per_week'
+                      ? tailor.payRatePerWeek
+                        ? <p className="text-xs text-muted-foreground">${tailor.payRatePerWeek.toFixed(2)}/{t('tailors.weekShort')}</p>
+                        : null
+                      : tailor.payRatePerPiece
+                        ? <p className="text-xs text-muted-foreground">${tailor.payRatePerPiece.toFixed(2)}/{t('tailors.pieceShort')}</p>
+                        : null
+                    }
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
                     <Badge
@@ -140,7 +143,7 @@ export default function Tailors() {
                 <TableRow>
                   <TableHead>{t('tailors.name')}</TableHead>
                   <TableHead>{t('tailors.phone')}</TableHead>
-                  <TableHead>{t('tailors.payRatePerPiece')}</TableHead>
+                  <TableHead>{t('tailors.payRate')}</TableHead>
                   <TableHead>{t('tailors.activeJobs')}</TableHead>
                   <TableHead>{t('common.status')}</TableHead>
                   <TableHead className="w-[80px]" />
@@ -154,11 +157,14 @@ export default function Tailors() {
                       {tailor.phone ?? '—'}
                     </TableCell>
                     <TableCell>
-                      {tailor.payRatePerPiece ? (
-                        `$${tailor.payRatePerPiece.toFixed(2)}/pc`
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
+                      {tailor.paymentType === 'per_week'
+                        ? tailor.payRatePerWeek
+                          ? `$${tailor.payRatePerWeek.toFixed(2)}/${t('tailors.weekShort')}`
+                          : <span className="text-muted-foreground">—</span>
+                        : tailor.payRatePerPiece
+                          ? `$${tailor.payRatePerPiece.toFixed(2)}/${t('tailors.pieceShort')}`
+                          : <span className="text-muted-foreground">—</span>
+                      }
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">

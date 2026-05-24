@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
@@ -17,7 +17,9 @@ import type { Tailor } from '@/types'
 const schema = z.object({
   name: z.string().min(1),
   phone: z.string().optional(),
+  paymentType: z.enum(['per_piece', 'per_week']),
   payRatePerPiece: z.coerce.number().min(0).optional(),
+  payRatePerWeek: z.coerce.number().min(0).optional(),
   isActive: z.boolean().optional(),
 })
 
@@ -31,35 +33,27 @@ interface Props {
   isEdit?: boolean
 }
 
-export default function TailorForm({
-  defaultValues,
-  onSubmit,
-  onCancel,
-  isLoading,
-  isEdit,
-}: Props) {
+export default function TailorForm({ defaultValues, onSubmit, onCancel, isLoading, isEdit }: Props) {
   const { t } = useTranslation('common')
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<FormValues>({
+  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: defaultValues?.name ?? '',
       phone: defaultValues?.phone ?? '',
+      paymentType: defaultValues?.paymentType ?? 'per_piece',
       payRatePerPiece: defaultValues?.payRatePerPiece ?? 0,
+      payRatePerWeek: defaultValues?.payRatePerWeek ?? 0,
       isActive: defaultValues?.isActive ?? true,
     },
   })
 
+  const paymentType = watch('paymentType')
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* Name — full width */}
+        {/* Name */}
         <div className="space-y-2 sm:col-span-2">
           <Label htmlFor="name">{t('tailors.name')} *</Label>
           <Input
@@ -86,56 +80,87 @@ export default function TailorForm({
           />
         </div>
 
-        {/* Pay rate */}
+        {/* Payment type */}
         <div className="space-y-2">
-          <Label htmlFor="payRatePerPiece">{t('tailors.payRatePerPiece')}</Label>
-          <Input
-            id="payRatePerPiece"
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min={0}
-            className="min-h-[44px]"
-            {...register('payRatePerPiece')}
+          <Label>{t('tailors.paymentType')}</Label>
+          <Controller
+            name="paymentType"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger className="min-h-[44px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="per_piece">{t('tailors.perPiece')}</SelectItem>
+                  <SelectItem value="per_week">{t('tailors.perWeek')}</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           />
         </div>
 
-        {/* Status — only on edit */}
+        {/* Pay rate — conditional on payment type */}
+        {paymentType === 'per_piece' ? (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="payRatePerPiece">{t('tailors.payRatePerPiece')}</Label>
+            <Input
+              id="payRatePerPiece"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min={0}
+              className="min-h-[44px]"
+              {...register('payRatePerPiece')}
+            />
+          </div>
+        ) : (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="payRatePerWeek">{t('tailors.payRatePerWeek')}</Label>
+            <Input
+              id="payRatePerWeek"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min={0}
+              className="min-h-[44px]"
+              {...register('payRatePerWeek')}
+            />
+          </div>
+        )}
+
+        {/* Status — edit only */}
         {isEdit && (
-          <div className="space-y-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label>{t('common.status')}</Label>
-            <Select
-              value={watch('isActive') ? 'active' : 'inactive'}
-              onValueChange={(v) => setValue('isActive', v === 'active')}
-            >
-              <SelectTrigger className="min-h-[44px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">{t('common.active')}</SelectItem>
-                <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="isActive"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value ? 'active' : 'inactive'}
+                  onValueChange={(v) => field.onChange(v === 'active')}
+                >
+                  <SelectTrigger className="min-h-[44px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">{t('common.active')}</SelectItem>
+                    <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
         )}
       </div>
 
-      {/* Actions */}
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-[44px]"
-          onClick={onCancel}
-        >
+        <Button type="button" variant="outline" className="min-h-[44px]" onClick={onCancel}>
           {t('common.cancel')}
         </Button>
         <Button type="submit" className="min-h-[44px]" disabled={isLoading}>
-          {isLoading
-            ? t('common.saving')
-            : isEdit
-              ? t('tailors.editTailor')
-              : t('tailors.addTailor')}
+          {isLoading ? t('common.saving') : isEdit ? t('tailors.editTailor') : t('tailors.addTailor')}
         </Button>
       </div>
     </form>
