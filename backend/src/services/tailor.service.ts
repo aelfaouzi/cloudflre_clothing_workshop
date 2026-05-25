@@ -1,10 +1,16 @@
+import { eq } from 'drizzle-orm'
+import type { AppDb } from '../db'
+import { jobOrders } from '../db/schema'
 import type { TailorRepository } from '../repositories/tailor.repository'
 import type { Tailor } from '../db/schema'
 import type { CreateTailorInput, UpdateTailorInput } from '../validators/tailor.validator'
 import { generateId, now } from '../utils/id'
 
 export class TailorService {
-  constructor(private tailorRepo: TailorRepository) {}
+  constructor(
+    private tailorRepo: TailorRepository,
+    private db: AppDb,
+  ) {}
 
   async list(tenantId: string): Promise<Tailor[]> {
     return this.tailorRepo.findAll(tenantId)
@@ -49,6 +55,8 @@ export class TailorService {
 
   async delete(id: string, tenantId: string): Promise<void> {
     await this.tailorRepo.findByIdOrThrow(id, tenantId)
+    // Null out tailor reference on jobs before deleting (FK constraint)
+    await this.db.update(jobOrders).set({ tailorId: null }).where(eq(jobOrders.tailorId, id))
     await this.tailorRepo.delete(id, tenantId)
   }
 }
